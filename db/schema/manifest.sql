@@ -65,3 +65,4 @@
 \i indexes/stage_runs_stage.sql
 \i indexes/type_defs_shape_hash.sql
 \i indexes/wasm_modules_source_repo.sql
+\i views/repo_contract_links.sql
