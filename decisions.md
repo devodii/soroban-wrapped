@@ -28,6 +28,14 @@ Decisions made while building, with the reason, so they can be challenged. Newes
 ## Interfaces
 - **Live research UI** (`soroban-wrapped serve`, port 8787) reads the database directly. It is the base for the later React and 3D app, which will use the same API.
 
+## Discovery is not claimed to be complete
+- **Known holes:** identical-size files can hit GitHub's 1,000-result cap inside one size bucket; code search skips most forks, non-default branches and large files; non-GitHub hosts are not searched; sibling repos of a found owner can be missed.
+- **Closures built:** `Cargo.lock` and extra Stellar crate searches, crates.io dependents, an **owner sweep** that lists every repo of each confirmed owner through REST (not the search limit), a flag on search slices that hit the cap, and a capture-recapture coverage estimate on the Overview tab (shown only once text and content searches overlap on 30+ repos).
+- **Still open:** non-GitHub hosts, and any repo no search or owner link reaches.
+
+## On-chain history plan and budget
+- Probe one small slice first (about 3 to 5 Actions minutes), then decide. Estimated full cost range is 0 to about 60 USD depending on runner speed (900 to 9,200 minutes against 2,000 free). Set Actions spending limit to 0 so nothing can charge. Alternatives: AWS spot VM (1 to 4 USD) or make the repo public (free unlimited minutes).
+
 ## Open for the owner
 - Approve the full-year on-chain run on GitHub Actions (or choose an AWS spot VM or BigQuery instead).
 - Add the third GitHub token to `.env`.
