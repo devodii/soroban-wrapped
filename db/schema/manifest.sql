@@ -1,4 +1,5 @@
 \i tables/bug_classes.sql
+\i tables/catalog_candidates.sql
 \i tables/chain_days.sql
 \i tables/comments.sql
 \i tables/repos.sql
@@ -22,12 +23,15 @@
 \i tables/proposals.sql
 \i tables/proposal_bug_classes.sql
 \i tables/proposal_patterns.sql
+\i tables/query_stats.sql
 \i tables/releases.sql
 \i tables/repo_contract_refs.sql
 \i tables/repo_contributors.sql
 \i tables/repo_documents.sql
 \i tables/repo_network_signals.sql
+\i tables/stage_runs.sql
 \i tables/type_defs.sql
+\i indexes/catalog_candidates_status.sql
 \i indexes/comments_target.sql
 \i indexes/commit_pattern_touches_pattern.sql
 \i indexes/commits_committed_at.sql
@@ -48,6 +52,8 @@
 \i indexes/repo_contract_refs_contract.sql
 \i indexes/repo_documents_kind.sql
 \i indexes/repo_network_signals_network.sql
+\i indexes/repos_is_soroban.sql
 \i indexes/repos_pushed_at.sql
+\i indexes/stage_runs_stage.sql
 \i indexes/type_defs_shape_hash.sql
 \i indexes/wasm_modules_source_repo.sql

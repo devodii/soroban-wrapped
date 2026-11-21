@@ -7,6 +7,8 @@ CREATE TABLE source_files (
     loc integer NOT NULL,
     is_test boolean DEFAULT FALSE NOT NULL,
     parse_errors integer DEFAULT 0 NOT NULL,
+    content text,
+    analysed_with text,
     uses text[] DEFAULT '{}' NOT NULL,
     macros text[] DEFAULT '{}' NOT NULL,
     CONSTRAINT source_files_pkey PRIMARY KEY (repo, path),

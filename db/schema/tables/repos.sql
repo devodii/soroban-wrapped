@@ -29,6 +29,7 @@ CREATE TABLE repos (
     total_commits integer,
     head_sha text,
     locked_versions jsonb DEFAULT '{}' NOT NULL,
+    is_soroban boolean DEFAULT FALSE NOT NULL,
     rust_files integer DEFAULT 0 NOT NULL,
     rust_loc integer DEFAULT 0 NOT NULL,
     contract_crates integer DEFAULT 0 NOT NULL,
