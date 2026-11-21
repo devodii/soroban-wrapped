@@ -12,4 +12,7 @@ WHERE
             AND c.status = 'failed'
             AND c.attempts >= 3
     )
-ORDER BY is_soroban DESC, stars DESC
+ORDER BY
+    coalesce((SELECT bool_and(v LIKE 'owner:%') FROM unnest(discovered_via) AS v), FALSE) ASC,
+    is_soroban DESC,
+    stars DESC
