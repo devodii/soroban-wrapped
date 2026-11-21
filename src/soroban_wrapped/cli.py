@@ -95,6 +95,9 @@ def main() -> None:
     )
     imported.add_argument("--dir", default="out/lake")
     imported.add_argument("--network", default="mainnet")
+    rfps = commands.add_parser("rfps", help="write each tooling need as an rfp draft")
+    rfps.add_argument("--out", default="out/rfps")
+    rfps.add_argument("--min-score", type=float, default=0.0)
     schema = commands.add_parser("schema", help="manage the database schema")
     actions = schema.add_subparsers(dest="action", required=True)
     actions.add_parser("plan", help="write the pending changes to the next migration")
@@ -138,6 +141,10 @@ def main() -> None:
                         "autopilot crashed, restarting in 60s"
                     )
                     time.sleep(60)
+        case "rfps":
+            from soroban_wrapped.rfp_export import run_export as export_rfps
+
+            asyncio.run(export_rfps(args.out, args.min_score))
         case "serve":
             import uvicorn
 
