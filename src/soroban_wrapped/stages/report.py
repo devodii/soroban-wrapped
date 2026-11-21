@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 from soroban_wrapped import checkpoints
 from soroban_wrapped.config import ROOT
+from soroban_wrapped.drive import pending
 from soroban_wrapped.runner import Context, stage
 from soroban_wrapped.workflow import Stage
 
@@ -48,6 +49,13 @@ async def write_report(context: Context, _: Stage) -> None:
     now = {name: await pool.fetchval(sql) for name, sql in COUNTS.items()}
     saved = await checkpoints.get(pool, "report", "last")
     before = (saved.cursor if saved else {}).get("counts", {})
+    stamp = datetime.now(UTC)
+    earlier = (saved.cursor if saved else {}).get("at")
+    hours = (
+        (stamp - datetime.fromisoformat(earlier)).total_seconds() / 3600
+        if earlier
+        else 0
+    )
     lines = [
         "# Soroban Wrapped report",
         "",
@@ -59,6 +67,42 @@ async def write_report(context: Context, _: Stage) -> None:
         f"- **{name}:** {value:,}{arrow(value, before.get(name))}"
         for name, value in now.items()
     ]
+    work = await pending(context)
+    estimates = []
+    for label, key, counter in (
+        ("extraction", "clone", "repos scanned"),
+        ("issues and pull requests", "history", "confirmed soroban repos"),
+        ("repo details", "metadata", "repos with details"),
+    ):
+        left = work.get(key, 0)
+        rate = (
+            (now[counter] - before.get(counter, now[counter])) / hours
+            if hours > 0.05
+            else 0
+        )
+        if key == "history":
+            rate = (
+                (
+                    (
+                        await pool.fetchval(
+                            "SELECT count(*) FROM checkpoints WHERE job = 'history' AND status = 'done'"
+                        )
+                    )
+                    - before.get("history done", 0)
+                )
+                / hours
+                if hours > 0.05
+                else 0
+            )
+        if left and rate > 0:
+            estimates.append(
+                f"- {label}: {left:,} left at about {rate:,.0f} per hour, roughly {left / rate:.1f} hours"
+            )
+        elif left:
+            estimates.append(f"- {label}: {left:,} left (rate not measured yet)")
+        else:
+            estimates.append(f"- {label}: nothing left")
+    lines += ["", "## Time remaining (from the measured rate)", "", *estimates]
     days = await pool.fetchrow(
         "SELECT min(day) AS first, max(day) AS last FROM chain_days WHERE status = 'done'"
     )
@@ -125,6 +169,15 @@ async def write_report(context: Context, _: Stage) -> None:
     ]
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     REPORT.write_text("\n".join(lines))
-    await checkpoints.put(pool, "report", "last", "done", {"counts": now})
+    history_done = await pool.fetchval(
+        "SELECT count(*) FROM checkpoints WHERE job = 'history' AND status = 'done'"
+    )
+    await checkpoints.put(
+        pool,
+        "report",
+        "last",
+        "done",
+        {"counts": {**now, "history done": history_done}, "at": stamp.isoformat()},
+    )
     context.items = len(now)
     log.info("report written to %s", REPORT)
