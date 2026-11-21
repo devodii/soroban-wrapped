@@ -12,6 +12,7 @@ from soroban_wrapped.database import open_pool
 from soroban_wrapped.sql_loader import load_sql
 
 UI_DIR = Path(__file__).with_name("ui")
+MIN_OVERLAP = 30
 
 
 class CommentIn(BaseModel):
@@ -39,12 +40,15 @@ def verdict(row: dict[str, Any]) -> str:
 
 def recall(found: dict[str, Any]) -> dict[str, Any]:
     text, content, both = found["by_text"], found["by_content"], found["by_both"]
-    estimate = ((text + 1) * (content + 1) / (both + 1) - 1) if both else None
+    reliable = both >= MIN_OVERLAP
+    estimate = ((text + 1) * (content + 1) / (both + 1) - 1) if reliable else None
     return {
         **found,
         "estimated_total": round(estimate) if estimate else None,
         "estimated_missing": round(estimate - found["confirmed"]) if estimate else None,
-        "note": "Lincoln-Petersen estimate from text search vs content search overlap",
+        "note": "Lincoln-Petersen estimate from text search vs content search overlap"
+        if reliable
+        else f"not enough overlap yet ({both} of the {MIN_OVERLAP} needed), content search is still running",
     }
 
 
