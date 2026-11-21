@@ -36,5 +36,6 @@ CREATE TABLE repos (
     discovered_at timestamptz DEFAULT now() NOT NULL,
     cloned_at timestamptz,
     scanned_at timestamptz,
+    search tsvector GENERATED ALWAYS AS (to_tsvector('english', coalesce(full_name, '') || ' ' || coalesce(description, ''))) STORED,
     CONSTRAINT repos_pkey PRIMARY KEY (full_name)
 );

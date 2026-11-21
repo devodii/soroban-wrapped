@@ -14,6 +14,8 @@ CREATE TABLE issues (
     is_bug boolean DEFAULT FALSE NOT NULL,
     bug_classes text[] DEFAULT '{}' NOT NULL,
     url text NOT NULL,
+    reactions integer DEFAULT 0 NOT NULL,
+    search tsvector GENERATED ALWAYS AS (to_tsvector('english', coalesce(title, '') || ' ' || coalesce(left(body, 20000), ''))) STORED,
     CONSTRAINT issues_pkey PRIMARY KEY (repo, number),
     CONSTRAINT issues_repo_fkey FOREIGN KEY (repo) REFERENCES repos (full_name) ON DELETE CASCADE
 );
