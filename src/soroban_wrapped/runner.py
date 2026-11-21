@@ -5,12 +5,13 @@ from contextlib import AsyncExitStack
 
 import asyncpg
 import httpx
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from soroban_wrapped.catalog import Catalog, load_catalog
 from soroban_wrapped.config import get_settings
 from soroban_wrapped.database import open_pool
 from soroban_wrapped.github.client import GithubClient
+from soroban_wrapped.sql_loader import load_sql
 from soroban_wrapped.workflow import Stage, Workflow, load_workflow
 
 log = logging.getLogger("soroban_wrapped")
@@ -26,6 +27,9 @@ class Context(BaseModel):
     github: GithubClient
     force: bool = False
     limit: int | None = None
+    items: int = 0
+    errors: int = 0
+    detail: dict[str, object] = Field(default_factory=dict)
 
 
 StageFunction = Callable[[Context, Stage], Awaitable[None]]
@@ -109,6 +113,27 @@ async def run_workflow(
             if function is None:
                 raise ValueError(f"{item.id} uses {item.uses}, which is not built yet")
             started = time.monotonic()
+            context.items, context.errors, context.detail = 0, 0, {}
             log.info("stage %s (%s)", item.id, item.uses)
-            await function(context, item)
-            log.info("stage %s done in %.1fs", item.id, time.monotonic() - started)
+            run_id = await pool.fetchval(load_sql("stage_run_start"), item.id)
+            status = "failed"
+            try:
+                await function(context, item)
+                status = "done"
+            finally:
+                await pool.execute(
+                    load_sql("stage_run_finish"),
+                    run_id,
+                    status,
+                    context.items,
+                    context.errors,
+                    context.detail,
+                )
+                log.info(
+                    "stage %s %s in %.1fs, %s items, %s errors",
+                    item.id,
+                    status,
+                    time.monotonic() - started,
+                    context.items,
+                    context.errors,
+                )

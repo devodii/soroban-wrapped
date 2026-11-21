@@ -65,6 +65,7 @@ async def sync_catalog(context: Context, _: Stage) -> None:
             "DELETE FROM bug_classes WHERE id <> ALL($1::text[])",
             [b.id for b in catalog.bug_classes],
         )
+    context.items = len(catalog.patterns) + len(catalog.proposals)
     log.info(
         "catalog: %s patterns, %s bug classes, %s proposals",
         len(catalog.patterns),

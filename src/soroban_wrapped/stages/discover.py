@@ -116,4 +116,5 @@ async def discover(context: Context, _: Stage) -> None:
     ]
     async with context.pool.acquire() as connection:
         await connection.executemany(load_sql("upsert_discovered"), rows)
+    context.items = len(rows)
     log.info("discovered %s repos", len(rows))
