@@ -54,6 +54,7 @@
 \i indexes/issues_is_bug.sql
 \i indexes/pattern_matches_pattern.sql
 \i indexes/pattern_matches_shape_hash.sql
+\i indexes/proposals_score.sql
 \i indexes/repo_contract_refs_contract.sql
 \i indexes/repo_documents_kind.sql
 \i indexes/repo_network_signals_network.sql
