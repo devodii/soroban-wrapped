@@ -40,6 +40,12 @@ Decisions made while building, with the reason, so they can be challenged. Newes
 - **Artifacts:** each day's summary is small (60 to 130 KB per 400 to 800 ledgers, roughly 0.5 to 2 MB per full day). A year could approach the free 500 MB artifact storage, so run in batches of 2 to 3 months, import, then delete the artifacts.
 - **Not launched in full.** It needs your go-ahead. The command is `gh workflow run lake.yml -f network=mainnet -f start=2026-01-01 -f end=2026-02-28` then `gh run download` then `soroban-wrapped lake-import`.
 
+## Overnight decisions (2026-11-21)
+- **Stages run as independent followers, not in sequence.** Metadata, extraction and history each loop on their own pending work, so history (issues, PRs, releases) no longer waits hours behind extraction. A periodic loop runs sweep, chain, lake import, reanalyse, mine, score, graph and report every 20 minutes.
+- **The database moved onto the host disk (`./.pgdata`, git-ignored).** The Docker VM disk was 100% full (58 GB, 37 MB free) and a full disk would crash Postgres. I backed up, restored, verified every count was identical, then removed the old volume. I did not touch any other project's Docker volumes (about 12 GB of unused ones exist, they are yours to prune). A pg_dump is kept at `out/backup.dump`.
+- **Contract links are ranked by evidence, not treated as equal.** The view `repo_contract_links` ranks: verified (the wasm's own `source_repo` equals the repo), deployment (id found in a deploy or config file), code, docs, fixture (tests and examples). A README mention is not proof of ownership. Today: 18 deployment, 20 code, 185 docs, 4 fixture.
+- **Disk watch.** If the Docker VM disk fills again, only our own cache and volumes are safe to clear. Anything else needs the owner.
+
 ## Open for the owner
 - Approve the full-year on-chain run on GitHub Actions (or choose an AWS spot VM or BigQuery instead).
 - Add the third GitHub token to `.env`.
