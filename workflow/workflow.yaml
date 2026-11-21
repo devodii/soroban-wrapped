@@ -34,6 +34,18 @@ discover:
     - "extern crate soroban_sdk language:Rust"
     - "use soroban_sdk language:Rust"
     - "contractimport language:Rust"
+    - "soroban-sdk filename:Cargo.lock"
+    - "name = \"soroban-sdk\" filename:Cargo.lock"
+    - "soroban-sdk-macros filename:Cargo.lock"
+    - "stellar-xdr filename:Cargo.toml"
+    - "soroban-client filename:Cargo.toml"
+    - "stellar-strkey filename:Cargo.toml"
+    - "stellar-rpc-client filename:Cargo.toml"
+    - "soroban-env-host filename:Cargo.toml"
+    - "soroban-spec filename:Cargo.toml"
+    - "#[contract] language:Rust"
+    - "#[contracttype] language:Rust"
+    - "extend_ttl language:Rust"
   exclude_owners: []
   exclude_repos: []
   min_window_commits: 0

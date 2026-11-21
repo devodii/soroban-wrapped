@@ -302,8 +302,10 @@ def analyse_tree(
         text = read_text(root, entry, clone.max_file_bytes)
         if text is not None:
             texts[entry.path] = text
-    analysis.is_soroban = soroban_crates or any(
-        SOROBAN_MARK.search(t) for t in texts.values()
+    analysis.is_soroban = (
+        soroban_crates
+        or "soroban-sdk" in analysis.locked_versions
+        or any(SOROBAN_MARK.search(t) for t in texts.values())
     )
     if not analysis.is_soroban:
         return analysis

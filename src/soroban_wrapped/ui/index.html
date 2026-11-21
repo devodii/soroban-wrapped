@@ -86,7 +86,9 @@ const VIEWS = {
     const stages = table('stages', [
       {key:'stage',label:'stage'}, {key:'status',label:'status',render:(r)=>`<span class="${r.status==='done'?'ok':r.status==='failed'?'bad':'muted'}">${esc(r.status)}</span>`},
       {key:'items',label:'items',num:1,render:(r)=>fmt(r.items)}, {key:'errors',label:'errors',num:1}, {key:'seconds',label:'seconds',num:1,render:(r)=>Number(r.seconds).toFixed(1)}, {key:'started_at',label:'started',render:(r)=>esc(String(r.started_at).slice(0,19))}], d.stages);
-    return `<div class="cards">${cards}${net}</div><h3>Stage runs</h3>${stages}`;
+    const rc = d.recall || {};
+    const recall = `<div class="cards"><div class="card"><b>${fmt(rc.confirmed)}</b><span>confirmed soroban repos</span></div><div class="card"><b>${fmt(rc.by_text)}</b><span>found by text search</span></div><div class="card"><b>${fmt(rc.by_content)}</b><span>found by content search</span></div><div class="card"><b>${fmt(rc.by_both)}</b><span>found by both</span></div><div class="card"><b>${rc.estimated_total == null ? 'n/a' : fmt(rc.estimated_total)}</b><span>estimated true total</span></div><div class="card"><b>${rc.estimated_missing == null ? 'n/a' : fmt(rc.estimated_missing)}</b><span>estimated still missing</span></div></div><p class="muted">Coverage check: the overlap between text search and content search estimates how many soroban repos exist that neither found. It firms up once the content searches finish.</p>`;
+    return `<div class="cards">${cards}${net}</div><h3>Discovery coverage</h3>${recall}<h3>Stage runs</h3>${stages}`;
   },
   repos(d) {
     return search('filter repos…') + table('repos', [

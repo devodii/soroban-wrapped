@@ -37,6 +37,17 @@ def verdict(row: dict[str, Any]) -> str:
     return "supported" if supported else "not supported"
 
 
+def recall(found: dict[str, Any]) -> dict[str, Any]:
+    text, content, both = found["by_text"], found["by_content"], found["by_both"]
+    estimate = ((text + 1) * (content + 1) / (both + 1) - 1) if both else None
+    return {
+        **found,
+        "estimated_total": round(estimate) if estimate else None,
+        "estimated_missing": round(estimate - found["confirmed"]) if estimate else None,
+        "note": "Lincoln-Petersen estimate from text search vs content search overlap",
+    }
+
+
 async def overview(pool: asyncpg.Pool, limit: int) -> dict[str, Any]:
     async with pool.acquire() as connection:
         proposals = records(await connection.fetch(load_sql("overview_proposals")))
@@ -53,6 +64,9 @@ async def overview(pool: asyncpg.Pool, limit: int) -> dict[str, Any]:
             ),
             "queries": records(await connection.fetch(load_sql("overview_queries"))),
             "networks": records(await connection.fetch(load_sql("overview_networks"))),
+            "recall": recall(
+                dict(await connection.fetchrow(load_sql("overview_recall")))
+            ),
         }
 
 
