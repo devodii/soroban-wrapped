@@ -1,1 +1,8 @@
-from soroban_wrapped.stages import catalog, discover, extract, history, metadata  # noqa: F401
+from soroban_wrapped.stages import (  # noqa: F401
+    catalog,
+    chain_state,
+    discover,
+    extract,
+    history,
+    metadata,
+)
