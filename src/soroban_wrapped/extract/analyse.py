@@ -180,7 +180,7 @@ def read_text(root: Path, entry: TreeEntry, limit: int) -> str | None:
     if entry.size > limit or entry.size == 0:
         return None
     try:
-        return (root / entry.path).read_text(errors="replace")
+        return (root / entry.path).read_text(errors="replace").replace("\x00", "")
     except OSError:
         return None
 

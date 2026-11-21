@@ -201,9 +201,9 @@ def parse_log(raw: str) -> list[CommitRecord]:
             CommitRecord(
                 sha=sha.strip(),
                 author_login=login_of(email),
-                author_name=name,
+                author_name=name.replace("\x00", ""),
                 committed_at=datetime.fromisoformat(stamp),
-                message=message.strip()[:8000],
+                message=message.replace("\x00", "").strip()[:8000],
                 parents=len(parents.split()),
                 files=files,
             )

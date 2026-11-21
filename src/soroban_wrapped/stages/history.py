@@ -97,8 +97,8 @@ async def fetch_all(context: Context, name: str) -> tuple[list, list, list]:
 
 
 def issue_row(context: Context, repo: str, item: dict, kind: str) -> tuple:
-    title = item["title"] or ""
-    body = (item["body"] or "")[:BODY_LIMIT]
+    title = (item["title"] or "").replace("\x00", "")
+    body = (item["body"] or "").replace("\x00", "")[:BODY_LIMIT]
     labels = [label["name"] for label in item["labels"]["nodes"]]
     text = f"{title}\n{body}"
     fix = compiled(context.workflow.history.fix_message)
@@ -172,7 +172,7 @@ async def history(context: Context, _: Stage) -> None:
                             name,
                             r["tagName"],
                             r["name"],
-                            (r["description"] or "")[:BODY_LIMIT],
+                            (r["description"] or "").replace("\x00", "")[:BODY_LIMIT],
                             r["isPrerelease"],
                             datetime.fromisoformat(r["publishedAt"])
                             if r["publishedAt"]
