@@ -77,6 +77,7 @@ async def save(
     sample: dict,
     proposal_kind: str | None,
     extra: dict | None = None,
+    members: list[str] | None = None,
 ) -> None:
     identifier = f"{kind}:{digest(signature)}"
     evidence = {
@@ -114,6 +115,12 @@ async def save(
             scored["score"],
             evidence,
         )
+        if members:
+            proposal_id = f"mined-{identifier.replace(':', '-')}"
+            await context.pool.execute(load_sql("clear_proposal_repos"), proposal_id)
+            await context.pool.execute(
+                load_sql("add_proposal_repos"), proposal_id, sorted(set(members))
+            )
 
 
 def summarise(kind: str, metrics: Metrics, scored: dict) -> str:
@@ -165,6 +172,7 @@ async def mine_shapes(context: Context, totals_: tuple[int, int]) -> int:
             sample,
             "idiom",
             {"common_name": row["common_name"], "contract_fns": row["contract_fns"]},
+            members[0],
         )
         count += 1
         if count >= cfg.top_per_kind:
@@ -205,6 +213,7 @@ async def mine_names(context: Context, totals_: tuple[int, int]) -> int:
             sample,
             "idiom",
             {"distinct_shapes": row["shapes"]},
+            members[0],
         )
     return len(rows)
 
@@ -241,6 +250,8 @@ async def mine_idioms(context: Context, totals_: tuple[int, int]) -> int:
             scored,
             sample,
             "idiom",
+            None,
+            members[0],
         )
     return len(rows)
 
@@ -264,6 +275,8 @@ async def mine_macros(context: Context, totals_: tuple[int, int]) -> int:
             scored,
             sample,
             "macro",
+            None,
+            members[0],
         )
     return len(rows)
 

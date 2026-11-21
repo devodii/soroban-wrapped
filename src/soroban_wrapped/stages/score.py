@@ -15,6 +15,7 @@ async def score_seeds(context: Context, totals_: tuple[int, int]) -> int:
     links: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
     for row in await context.pool.fetch(load_sql("seed_patterns")):
         links[row["proposal"]][row["role"]].append(row["pattern"])
+    await context.pool.execute(load_sql("refresh_seed_proposal_repos"))
     seeds = await context.pool.fetch(load_sql("seed_proposals"))
     for seed in seeds:
         roles = links[seed["id"]]

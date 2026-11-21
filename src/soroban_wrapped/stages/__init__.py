@@ -3,6 +3,7 @@ from soroban_wrapped.stages import (  # noqa: F401
     chain_state,
     discover,
     extract,
+    graph,
     history,
     metadata,
     mine,
