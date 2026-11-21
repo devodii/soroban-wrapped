@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from soroban_wrapped import checkpoints
 from soroban_wrapped.github.search import (
     PAGE_SIZE,
+    RESULT_CAP,
     code_slices,
     pages,
     repository_slices,
@@ -114,14 +115,14 @@ async def read_slice(
                         harvest.note(repository["full_name"], f"{kind}:{query}")
                 await flush(context, harvest)
                 page = current
+                capped = current >= RESULT_CAP // PAGE_SIZE and len(items) == PAGE_SIZE
                 await checkpoints.put(
                     context.pool,
                     JOB,
                     key,
-                    "done" if len(items) < PAGE_SIZE else "running",
-                    {"page": page},
+                    "done" if len(items) < PAGE_SIZE or capped else "running",
+                    {"page": page, "saturated": capped},
                 )
-            await checkpoints.put(context.pool, JOB, key, "done", {"page": page})
             return
         except NETWORK_ERRORS as error:
             log.warning(
