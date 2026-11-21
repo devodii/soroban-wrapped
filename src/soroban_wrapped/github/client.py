@@ -38,6 +38,14 @@ class GithubClient:
         self._lock = asyncio.Lock()
         self._raw_resume_at = 0.0
 
+    def add_tokens(self, values: list[str]) -> int:
+        known = {t.value for t in self._tokens}
+        fresh = [v for v in values if v and v not in known]
+        if fresh and all(t.value is None for t in self._tokens):
+            self._tokens = []
+        self._tokens.extend(Token(value=v) for v in fresh)
+        return len(fresh)
+
     async def _acquire(self, search: Search | None, resource: Resource) -> Token:
         while True:
             async with self._lock:

@@ -1,14 +1,15 @@
+import asyncio
 import logging
 import time
-from collections.abc import Awaitable, Callable
-from contextlib import AsyncExitStack
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import AsyncExitStack, asynccontextmanager
 
 import asyncpg
 import httpx
 from pydantic import BaseModel, ConfigDict, Field
 
 from soroban_wrapped.catalog import Catalog, load_catalog
-from soroban_wrapped.config import get_settings
+from soroban_wrapped.config import Settings, get_settings
 from soroban_wrapped.database import open_pool
 from soroban_wrapped.github.client import GithubClient
 from soroban_wrapped.sql_loader import load_sql
@@ -79,17 +80,25 @@ def select(
     return [s for s in ordered if s.id not in skip]
 
 
-async def run_workflow(
-    only: list[str],
-    skip: list[str],
-    start: str | None,
-    force: bool = False,
-    limit: int | None = None,
-) -> None:
+async def watch_tokens(github: GithubClient) -> None:
+    while True:
+        await asyncio.sleep(30)
+        try:
+            fresh = Settings().github_tokens
+        except Exception:
+            continue
+        added = github.add_tokens(fresh)
+        if added:
+            log.info("picked up %s new github token(s) from .env", added)
+
+
+@asynccontextmanager
+async def session(
+    force: bool = False, limit: int | None = None
+) -> AsyncIterator[Context]:
     from soroban_wrapped import stages as _stages  # noqa: F401
 
     workflow = load_workflow()
-    chosen = select(workflow.stages, only, skip, start)
     async with AsyncExitStack() as stack:
         pool = await open_pool()
         stack.push_async_callback(pool.close)
@@ -99,41 +108,61 @@ async def run_workflow(
                 limits=httpx.Limits(max_connections=200, max_keepalive_connections=50),
             )
         )
-        context = Context(
-            workflow=workflow,
-            catalog=load_catalog(workflow),
-            pool=pool,
-            http=http,
-            github=GithubClient(http, get_settings().github_tokens),
-            force=force,
-            limit=limit,
+        github = GithubClient(http, get_settings().github_tokens)
+        watcher = asyncio.create_task(watch_tokens(github))
+        try:
+            yield Context(
+                workflow=workflow,
+                catalog=load_catalog(workflow),
+                pool=pool,
+                http=http,
+                github=github,
+                force=force,
+                limit=limit,
+            )
+        finally:
+            watcher.cancel()
+
+
+async def run_stage(parent: Context, item: Stage) -> Context:
+    function = REGISTRY.get(item.uses)
+    if function is None:
+        raise ValueError(f"{item.id} uses {item.uses}, which is not built yet")
+    context = parent.model_copy(update={"items": 0, "errors": 0, "detail": {}})
+    started = time.monotonic()
+    log.info("stage %s (%s)", item.id, item.uses)
+    run_id = await context.pool.fetchval(load_sql("stage_run_start"), item.id)
+    status = "failed"
+    try:
+        await function(context, item)
+        status = "done"
+    finally:
+        await context.pool.execute(
+            load_sql("stage_run_finish"),
+            run_id,
+            status,
+            context.items,
+            context.errors,
+            context.detail,
         )
-        for item in chosen:
-            function = REGISTRY.get(item.uses)
-            if function is None:
-                raise ValueError(f"{item.id} uses {item.uses}, which is not built yet")
-            started = time.monotonic()
-            context.items, context.errors, context.detail = 0, 0, {}
-            log.info("stage %s (%s)", item.id, item.uses)
-            run_id = await pool.fetchval(load_sql("stage_run_start"), item.id)
-            status = "failed"
-            try:
-                await function(context, item)
-                status = "done"
-            finally:
-                await pool.execute(
-                    load_sql("stage_run_finish"),
-                    run_id,
-                    status,
-                    context.items,
-                    context.errors,
-                    context.detail,
-                )
-                log.info(
-                    "stage %s %s in %.1fs, %s items, %s errors",
-                    item.id,
-                    status,
-                    time.monotonic() - started,
-                    context.items,
-                    context.errors,
-                )
+        log.info(
+            "stage %s %s in %.1fs, %s items, %s errors",
+            item.id,
+            status,
+            time.monotonic() - started,
+            context.items,
+            context.errors,
+        )
+    return context
+
+
+async def run_workflow(
+    only: list[str],
+    skip: list[str],
+    start: str | None,
+    force: bool = False,
+    limit: int | None = None,
+) -> None:
+    async with session(force, limit) as context:
+        for item in select(context.workflow.stages, only, skip, start):
+            await run_stage(context, item)

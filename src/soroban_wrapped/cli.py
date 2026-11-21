@@ -76,6 +76,9 @@ def main() -> None:
     serve.add_argument("--host", default="127.0.0.1")
     export = commands.add_parser("export", help="dump the overview to json and html")
     export.add_argument("--out", default="out")
+    commands.add_parser(
+        "drive", help="autopilot: run every stage, restart on crashes, follow new work"
+    )
     schema = commands.add_parser("schema", help="manage the database schema")
     actions = schema.add_subparsers(dest="action", required=True)
     actions.add_parser("plan", help="write the pending changes to the next migration")
@@ -90,6 +93,18 @@ def main() -> None:
     match args.command:
         case "run":
             raise SystemExit(run_stages(args))
+        case "drive":
+            from soroban_wrapped.drive import drive
+
+            while True:
+                try:
+                    asyncio.run(drive())
+                    break
+                except Exception:
+                    logging.getLogger("soroban_wrapped").exception(
+                        "autopilot crashed, restarting in 60s"
+                    )
+                    time.sleep(60)
         case "serve":
             import uvicorn
 
