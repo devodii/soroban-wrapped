@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import time
-from datetime import UTC, datetime, time
+from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field
 
@@ -83,8 +83,8 @@ async def finish_query(
 
 async def search_repositories(context: Context, harvest: Harvest) -> None:
     window = context.workflow.window
-    since = datetime.combine(window.start, time.min, tzinfo=UTC)
-    until = datetime.combine(window.end, time.max, tzinfo=UTC)
+    since = datetime.combine(window.start, datetime.min.time(), tzinfo=UTC)
+    until = datetime.combine(window.end, datetime.max.time(), tzinfo=UTC)
     excluded = {o.lower() for o in context.workflow.discover.exclude_owners}
 
     async def one(query: str) -> None:
