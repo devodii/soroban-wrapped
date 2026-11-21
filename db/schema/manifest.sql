@@ -1,6 +1,7 @@
 \i tables/bug_classes.sql
 \i tables/catalog_candidates.sql
 \i tables/chain_days.sql
+\i tables/checkpoints.sql
 \i tables/comments.sql
 \i tables/repos.sql
 \i tables/commits.sql
@@ -34,6 +35,7 @@
 \i tables/stage_runs.sql
 \i tables/type_defs.sql
 \i indexes/catalog_candidates_status.sql
+\i indexes/checkpoints_status.sql
 \i indexes/comments_target.sql
 \i indexes/commit_pattern_touches_pattern.sql
 \i indexes/commits_committed_at.sql
