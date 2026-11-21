@@ -28,6 +28,27 @@ async def gh(*args: str) -> str:
     return out.decode()
 
 
+async def drop_artifacts(run_id: str) -> None:
+    try:
+        found = json.loads(
+            await gh(
+                "api",
+                f"repos/devodii/soroban-wrapped/actions/runs/{run_id}/artifacts",
+                "--jq",
+                "[.artifacts[].id]",
+            )
+        )
+        for artifact in found:
+            await gh(
+                "api",
+                "-X",
+                "DELETE",
+                f"repos/devodii/soroban-wrapped/actions/artifacts/{artifact}",
+            )
+    except RuntimeError as error:
+        log.warning("could not clean artifacts of run %s: %s", run_id, error)
+
+
 @stage("chain.lake")
 async def lake(context: Context, _: Stage) -> None:
     if shutil.which("gh") is None:
@@ -69,5 +90,6 @@ async def lake(context: Context, _: Stage) -> None:
             imported += await import_directory(context.pool, folder, network)
         await checkpoints.put(context.pool, JOB, run_id, "done", {"days": imported})
         shutil.rmtree(target, ignore_errors=True)
+        await drop_artifacts(run_id)
         context.items += imported
         log.info("lake run %s imported, %s days", run_id, imported)
