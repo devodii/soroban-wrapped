@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 API = "https://api.github.com"
 RAW = "https://raw.githubusercontent.com"
 SEARCH_INTERVAL = {"code": 6.5, "repositories": 2.2}
-RETRYABLE = {403, 429, 500, 502, 503, 504}
+RETRYABLE = {403, 408, 429, 500, 502, 503, 504}
 ABSENT = {404, 409, 451}
 ATTEMPTS = 6
 

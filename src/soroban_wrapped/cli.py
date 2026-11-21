@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import logging
 import os
+import time
 
 from soroban_wrapped.config import get_settings
 from soroban_wrapped.db_utils import pgschema
@@ -33,14 +34,27 @@ def run_stages(args: argparse.Namespace) -> int:
         return 1
     from soroban_wrapped.runner import run_workflow
 
-    try:
-        asyncio.run(
-            run_workflow(args.only, args.skip, args.start, args.force, args.limit)
-        )
-    except ValueError as error:
-        print(error)
-        return 1
-    return 0
+    attempt = 0
+    while True:
+        try:
+            asyncio.run(
+                run_workflow(args.only, args.skip, args.start, args.force, args.limit)
+            )
+            return 0
+        except ValueError as error:
+            print(error)
+            return 1
+        except Exception:
+            if not args.supervise:
+                raise
+            attempt += 1
+            pause = min(30 * attempt, 600)
+            logging.getLogger("soroban_wrapped").exception(
+                "run crashed, resuming from checkpoints in %ss (attempt %s)",
+                pause,
+                attempt,
+            )
+            time.sleep(pause)
 
 
 def main() -> None:
@@ -52,6 +66,11 @@ def main() -> None:
     run.add_argument("--skip", nargs="+", default=[], help="leave these stages out")
     run.add_argument("--force", action="store_true", help="redo work already stored")
     run.add_argument("--limit", type=int, help="stop each stage after this many items")
+    run.add_argument(
+        "--supervise",
+        action="store_true",
+        help="restart after a crash and resume from the checkpoints",
+    )
     serve = commands.add_parser("serve", help="serve the live research ui and api")
     serve.add_argument("--port", type=int, default=8787)
     serve.add_argument("--host", default="127.0.0.1")
