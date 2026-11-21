@@ -73,6 +73,10 @@ async def run(
 ) -> bytes:
     process = await asyncio.create_subprocess_exec(
         "git",
+        "-c",
+        "core.commitGraph=false",
+        "-c",
+        "gc.auto=0",
         *args,
         cwd=cwd,
         env=env,
