@@ -123,7 +123,7 @@ stages:
   - {id: discover, uses: github.discover, needs: [catalog]}
   - {id: metadata, uses: github.metadata, needs: [discover]}
   - {id: clone, uses: git.extract, needs: [metadata]}
-  - {id: history, uses: github.history, needs: [metadata]}
+  - {id: history, uses: github.history, needs: [clone]}
   - {id: chain, uses: chain.state, needs: [clone]}
   - {id: lake, uses: chain.lake, needs: [chain]}
   - {id: graph, uses: graph.build, needs: [clone, history, chain]}
