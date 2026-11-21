@@ -94,13 +94,13 @@ async def watch_tokens(github: GithubClient) -> None:
 
 @asynccontextmanager
 async def session(
-    force: bool = False, limit: int | None = None
+    force: bool = False, limit: int | None = None, pool_size: int = 10
 ) -> AsyncIterator[Context]:
     from soroban_wrapped import stages as _stages  # noqa: F401
 
     workflow = load_workflow()
     async with AsyncExitStack() as stack:
-        pool = await open_pool()
+        pool = await open_pool(pool_size)
         stack.push_async_callback(pool.close)
         http = await stack.enter_async_context(
             httpx.AsyncClient(

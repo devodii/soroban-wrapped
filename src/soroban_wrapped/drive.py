@@ -8,11 +8,12 @@ from soroban_wrapped.sql_loader import load_sql
 
 log = logging.getLogger("soroban_wrapped")
 
-FLOW = ["metadata", "clone", "history"]
-PERIODIC = ["sweep", "chain", "lake", "mine", "score", "graph"]
+FOLLOWED = {"metadata": "metadata", "clone": "clone", "history": "history"}
+PERIODIC = ["sweep", "chain", "lake", "reanalyse", "mine", "score", "graph", "report"]
 PERIOD = 1200
-IDLE_PAUSE = 60
+IDLE_PAUSE = 45
 MAX_BACKOFF = 600
+POOL_SIZE = 40
 
 
 async def pending(context: Context) -> dict[str, int]:
@@ -48,30 +49,70 @@ async def keep_discovering(context: Context) -> None:
         await safely(context, "discover", failures)
         if not failures.get("discover"):
             return
+        await asyncio.sleep(1)
+
+
+async def follow(
+    context: Context, stage_id: str, key: str, quiet: asyncio.Event
+) -> None:
+    failures: dict[str, int] = {}
+    while True:
+        work = (await pending(context)).get(key, 0)
+        if work:
+            await safely(context, stage_id, failures)
+            continue
+        if quiet.is_set():
+            return
+        await asyncio.sleep(IDLE_PAUSE)
+
+
+async def periodic(context: Context, quiet: asyncio.Event) -> None:
+    failures: dict[str, int] = {}
+    last = 0.0
+    while True:
+        due = time.monotonic() - last > PERIOD
+        if due or quiet.is_set():
+            for stage_id in PERIODIC:
+                await safely(context, stage_id, failures)
+            last = time.monotonic()
+            if quiet.is_set():
+                return
+        await asyncio.sleep(IDLE_PAUSE)
+
+
+async def watch_quiet(
+    context: Context, discovery: asyncio.Task, quiet: asyncio.Event
+) -> None:
+    calm = 0
+    while True:
+        work = await pending(context)
+        if discovery.done() and not any(work.values()):
+            calm += 1
+        else:
+            calm = 0
+        if calm >= 2:
+            log.info("nothing left to do, running the final pass")
+            quiet.set()
+            return
+        log.info(
+            "pending %s, discovery %s",
+            work,
+            "running" if not discovery.done() else "finished",
+        )
+        await asyncio.sleep(120)
 
 
 async def drive(force: bool = False) -> None:
-    async with session(force) as context:
+    async with session(force, pool_size=POOL_SIZE) as context:
+        quiet = asyncio.Event()
         discovery = asyncio.create_task(keep_discovering(context))
-        failures: dict[str, int] = {}
-        last_periodic = 0.0
-        while True:
-            work = await pending(context)
-            log.info(
-                "pending work %s, discovery %s",
-                work,
-                "running" if not discovery.done() else "finished",
-            )
-            for stage_id in FLOW:
-                if work.get(stage_id):
-                    await safely(context, stage_id, failures)
-            finished = discovery.done() and not any(work.values())
-            if finished or time.monotonic() - last_periodic > PERIOD:
-                for stage_id in PERIODIC:
-                    await safely(context, stage_id, failures)
-                last_periodic = time.monotonic()
-            if finished:
-                log.info("nothing left to do, all stages are caught up")
-                return
-            if not any(work.values()):
-                await asyncio.sleep(IDLE_PAUSE)
+        tasks = [
+            discovery,
+            asyncio.create_task(watch_quiet(context, discovery, quiet)),
+            asyncio.create_task(periodic(context, quiet)),
+            *(
+                asyncio.create_task(follow(context, stage_id, key, quiet))
+                for stage_id, key in FOLLOWED.items()
+            ),
+        ]
+        await asyncio.gather(*tasks)
