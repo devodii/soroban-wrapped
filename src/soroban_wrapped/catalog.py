@@ -138,3 +138,23 @@ def load_catalog(workflow: Workflow) -> Catalog:
     )
     catalog.validate_links()
     return catalog
+
+
+async def active_patterns(pool, catalog: Catalog) -> list[Pattern]:
+    import json
+
+    rows = await pool.fetch(
+        "SELECT id, category, description, matcher, diff FROM patterns "
+        "WHERE origin = 'mined' AND status = 'active' ORDER BY id"
+    )
+    mined = [
+        Pattern(
+            id=row["id"],
+            category=row["category"],
+            description=row["description"],
+            match=Match(**json.loads(row["matcher"])),
+            diff=row["diff"],
+        )
+        for row in rows
+    ]
+    return [*catalog.patterns, *mined]

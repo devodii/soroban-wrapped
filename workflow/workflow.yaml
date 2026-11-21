@@ -147,13 +147,17 @@ improve:
       independence: 0.6
       mainnet: 0.8
       recency: 0.5
-      fixes: 0.8
+      fixes: 0.4
       loc: 0.4
       covered: -0.7
   accept:
     policy: suggest
     min_score: 45
     min_owners: 8
+    patterns: auto
+    max_mined_patterns: 40
+    queries: auto
+    min_topic_repos: 15
 
 stages:
   - {id: catalog, uses: catalog.sync}
@@ -165,5 +169,6 @@ stages:
   - {id: lake, uses: chain.lake, needs: [chain]}
   - {id: sweep, uses: github.sweep, needs: [clone]}
   - {id: mine, uses: catalog.mine, needs: [clone, history, chain]}
+  - {id: reanalyse, uses: catalog.reanalyse, needs: [clone]}
   - {id: score, uses: catalog.score, needs: [mine]}
   - {id: graph, uses: graph.build, needs: [score]}

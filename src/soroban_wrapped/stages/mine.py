@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 from collections import Counter
@@ -394,6 +395,32 @@ async def mine_health(context: Context) -> int:
     return flagged
 
 
+async def promote_patterns(context: Context) -> int:
+    accept = context.workflow.improve.accept
+    if accept.patterns != "auto":
+        return 0
+    rows = await context.pool.fetch(
+        "SELECT signature, repos, evidence FROM catalog_candidates "
+        "WHERE kind = 'helper' AND repos >= $1 ORDER BY score DESC LIMIT $2",
+        accept.min_owners,
+        accept.max_mined_patterns,
+    )
+    for row in rows:
+        name = row["signature"]
+        matcher = {
+            "kind": "function",
+            "name": f"^{re.escape(name)}$",
+            "skip_tests": True,
+        }
+        await context.pool.execute(
+            load_sql("upsert_mined_pattern"),
+            f"mined.fn.{name}",
+            f"Function `{name}` hand-written in {row['repos']} repos (found by the miner)",
+            json.dumps(matcher),
+        )
+    return len(rows)
+
+
 async def mine_queries(context: Context) -> int:
     cfg = context.workflow.improve.mine
     rows = await context.pool.fetch(load_sql("mine_topics"), cfg.min_topic_repos)
@@ -415,6 +442,11 @@ async def mine_queries(context: Context) -> int:
             {"topic": row["topic"]},
             f'- "topic:{row["topic"]}"',
         )
+    if context.workflow.improve.accept.queries == "auto":
+        await context.pool.execute(
+            load_sql("accept_query_candidate"),
+            context.workflow.improve.accept.min_topic_repos,
+        )
     return len(fresh)
 
 
@@ -430,6 +462,7 @@ async def mine(context: Context, _: Stage) -> None:
         "bug_terms": await mine_terms(context),
         "health": await mine_health(context),
         "queries": await mine_queries(context),
+        "promoted_patterns": await promote_patterns(context),
     }
     context.detail.update(detail)
     context.items = sum(detail.values())

@@ -8,6 +8,7 @@ from pathlib import Path
 
 import asyncpg
 
+from soroban_wrapped.catalog import active_patterns
 from soroban_wrapped.config import get_settings
 from soroban_wrapped.extract import git
 from soroban_wrapped.extract.analyse import (
@@ -325,7 +326,7 @@ async def extract(context: Context, _: Stage) -> None:
         ]
     if context.limit:
         targets = targets[: context.limit]
-    patterns = context.catalog.patterns
+    patterns = await active_patterns(context.pool, context.catalog)
     digest = catalog_hash(patterns)
     sparse = sparse_patterns(workflow)
     tokens = itertools.cycle(get_settings().github_tokens or [None])

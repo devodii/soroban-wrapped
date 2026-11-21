@@ -140,7 +140,7 @@ class Weights(BaseModel):
     independence: float = 0.6
     mainnet: float = 0.8
     recency: float = 0.5
-    fixes: float = 0.8
+    fixes: float = 0.4
     loc: float = 0.4
     covered: float = -0.7
 
@@ -154,6 +154,10 @@ class Accept(BaseModel):
     policy: Literal["suggest", "auto"] = "suggest"
     min_score: float = 45
     min_owners: int = 8
+    patterns: Literal["off", "auto"] = "auto"
+    max_mined_patterns: int = 40
+    queries: Literal["off", "auto"] = "auto"
+    min_topic_repos: int = 15
 
 
 class Improve(BaseModel):

@@ -11,6 +11,7 @@ log = logging.getLogger("soroban_wrapped")
 FOLLOWED = {"metadata": "metadata", "clone": "clone", "history": "history"}
 PERIODIC = ["sweep", "chain", "lake", "reanalyse", "mine", "score", "graph", "report"]
 PERIOD = 1200
+RERUN_SECONDS = 3600
 IDLE_PAUSE = 45
 MAX_BACKOFF = 600
 POOL_SIZE = 40
@@ -43,13 +44,20 @@ async def safely(context: Context, stage_id: str, failures: dict[str, int]) -> N
         await asyncio.sleep(pause)
 
 
-async def keep_discovering(context: Context) -> None:
+async def keep_discovering(
+    context: Context, discovered: asyncio.Event, quiet: asyncio.Event
+) -> None:
     failures: dict[str, int] = {}
     while True:
         await safely(context, "discover", failures)
         if not failures.get("discover"):
-            return
-        await asyncio.sleep(1)
+            discovered.set()
+            for _ in range(RERUN_SECONDS // 30):
+                if quiet.is_set():
+                    return
+                await asyncio.sleep(30)
+        else:
+            await asyncio.sleep(1)
 
 
 async def follow(
@@ -81,12 +89,12 @@ async def periodic(context: Context, quiet: asyncio.Event) -> None:
 
 
 async def watch_quiet(
-    context: Context, discovery: asyncio.Task, quiet: asyncio.Event
+    context: Context, discovered: asyncio.Event, quiet: asyncio.Event
 ) -> None:
     calm = 0
     while True:
         work = await pending(context)
-        if discovery.done() and not any(work.values()):
+        if discovered.is_set() and not any(work.values()):
             calm += 1
         else:
             calm = 0
@@ -97,7 +105,7 @@ async def watch_quiet(
         log.info(
             "pending %s, discovery %s",
             work,
-            "running" if not discovery.done() else "finished",
+            "finished" if discovered.is_set() else "running",
         )
         await asyncio.sleep(120)
 
@@ -105,10 +113,10 @@ async def watch_quiet(
 async def drive(force: bool = False) -> None:
     async with session(force, pool_size=POOL_SIZE) as context:
         quiet = asyncio.Event()
-        discovery = asyncio.create_task(keep_discovering(context))
+        discovered = asyncio.Event()
         tasks = [
-            discovery,
-            asyncio.create_task(watch_quiet(context, discovery, quiet)),
+            asyncio.create_task(keep_discovering(context, discovered, quiet)),
+            asyncio.create_task(watch_quiet(context, discovered, quiet)),
             asyncio.create_task(periodic(context, quiet)),
             *(
                 asyncio.create_task(follow(context, stage_id, key, quiet))
