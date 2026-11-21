@@ -1,11 +1,11 @@
 INSERT INTO graph_edges (src, dst, kind, weight)
-SELECT DISTINCT
-    'repo:' || rc.repo,
-    'contract:' || d.network || ':' || d.contract_id,
+SELECT
+    'repo:' || l.repo,
+    'contract:' || l.network || ':' || l.contract_id,
     'deploys',
-    1
-FROM repo_contract_refs AS rc
-INNER JOIN deployed_contracts AS d ON rc.contract_id = d.contract_id
+    CASE l.link WHEN 'verified' THEN 4 WHEN 'deployment' THEN 3 ELSE 1 END
+FROM repo_contract_links AS l
 WHERE
-    'repo:' || rc.repo IN (SELECT id FROM graph_nodes)
-    AND 'contract:' || d.network || ':' || d.contract_id IN (SELECT id FROM graph_nodes)
+    l.link IN ('verified', 'deployment', 'code')
+    AND 'repo:' || l.repo IN (SELECT id FROM graph_nodes)
+    AND 'contract:' || l.network || ':' || l.contract_id IN (SELECT id FROM graph_nodes)

@@ -1,8 +1,10 @@
 import asyncio
 import logging
+import shutil
 import time
 from datetime import UTC, datetime
 
+from soroban_wrapped.config import ROOT
 from soroban_wrapped.runner import REGISTRY, Context, run_stage, session
 from soroban_wrapped.sql_loader import load_sql
 
@@ -15,6 +17,7 @@ RERUN_SECONDS = 3600
 IDLE_PAUSE = 45
 MAX_BACKOFF = 600
 POOL_SIZE = 40
+MIN_FREE_BYTES = 3_000_000_000
 
 
 async def pending(context: Context) -> dict[str, int]:
@@ -66,6 +69,14 @@ async def follow(
     failures: dict[str, int] = {}
     while True:
         work = (await pending(context)).get(key, 0)
+        if (
+            work
+            and stage_id == "clone"
+            and shutil.disk_usage(ROOT).free < MIN_FREE_BYTES
+        ):
+            log.warning("less than 3 GB free on disk, pausing extraction")
+            await asyncio.sleep(300)
+            continue
         if work:
             await safely(context, stage_id, failures)
             continue
