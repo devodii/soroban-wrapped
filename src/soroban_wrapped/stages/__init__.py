@@ -2,6 +2,7 @@ from soroban_wrapped.stages import (  # noqa: F401
     catalog,
     chain_state,
     discover,
+    ecosystem,
     extract,
     graph,
     history,

@@ -162,11 +162,23 @@ improve:
     queries: auto
     min_topic_repos: 15
 
+ecosystem:
+  batch: 8
+  concurrency: 4
+  max_text_bytes: 120000
+  manifests: [package.json, requirements.txt, pyproject.toml, go.mod, Cargo.toml, composer.json, Gemfile, pubspec.yaml, Package.swift, build.gradle, build.gradle.kts, pom.xml, Pipfile]
+  nested_manifests: [package.json, requirements.txt, pyproject.toml, go.mod, Cargo.toml, composer.json]
+  subdirs: [frontend, web, app, client, backend, server, api, sdk, cli, packages, apps, contracts, scripts, services, indexer, bot, tools, src]
+  files: [README.md, readme.md, Makefile, justfile, Taskfile.yml, Dockerfile, docker-compose.yml, docker-compose.yaml, .env.example, stellar.toml, soroban.json, .tool-versions, CONTRIBUTING.md, SECURITY.md]
+  trees: [.github/workflows, scripts, .circleci]
+  stellar_terms: 'stellar|soroban|horizon|freighter|albedo|xlm|sep-?\d+|lumens?'
+
 stages:
   - {id: catalog, uses: catalog.sync}
   - {id: discover, uses: github.discover, needs: [catalog]}
   - {id: metadata, uses: github.metadata, needs: [discover]}
   - {id: clone, uses: git.extract, needs: [metadata]}
+  - {id: ecosystem, uses: github.ecosystem, needs: [metadata]}
   - {id: history, uses: github.history, needs: [clone]}
   - {id: chain, uses: chain.state, needs: [clone]}
   - {id: lake, uses: chain.lake, needs: [chain]}

@@ -169,6 +169,24 @@ class Improve(BaseModel):
     accept: Accept = Field(default_factory=Accept)
 
 
+class Ecosystem(BaseModel):
+    batch: int = 8
+    concurrency: int = 4
+    max_text_bytes: int = 120000
+    manifests: list[str]
+    nested_manifests: list[str]
+    subdirs: list[str]
+    files: list[str]
+    trees: list[str]
+    stellar_terms: str
+
+    @field_validator("stellar_terms")
+    @classmethod
+    def compiles(cls, value: str) -> str:
+        re.compile(value)
+        return value
+
+
 class Stage(BaseModel):
     id: str
     uses: str
@@ -189,6 +207,7 @@ class Workflow(BaseModel):
     networks_signals: dict[Network, list[NetworkSignal]]
     chain: Chain
     improve: Improve = Field(default_factory=Improve)
+    ecosystem: Ecosystem
     stages: list[Stage]
     root: Path = Path(".")
 

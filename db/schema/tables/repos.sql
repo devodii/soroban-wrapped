@@ -36,6 +36,10 @@ CREATE TABLE repos (
     discovered_at timestamptz DEFAULT now() NOT NULL,
     cloned_at timestamptz,
     scanned_at timestamptz,
+    is_stellar boolean DEFAULT FALSE NOT NULL,
+    stack text[] DEFAULT '{}' NOT NULL,
+    stellar_libs text[] DEFAULT '{}' NOT NULL,
+    ecosystem_scanned_at timestamptz,
     search tsvector GENERATED ALWAYS AS (to_tsvector('english', coalesce(full_name, '') || ' ' || coalesce(description, ''))) STORED,
     CONSTRAINT repos_pkey PRIMARY KEY (full_name)
 );

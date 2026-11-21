@@ -10,7 +10,12 @@ from soroban_wrapped.sql_loader import load_sql
 
 log = logging.getLogger("soroban_wrapped")
 
-FOLLOWED = {"metadata": "metadata", "clone": "clone", "history": "history"}
+FOLLOWED = {
+    "metadata": "metadata",
+    "ecosystem": "ecosystem",
+    "clone": "clone",
+    "history": "history",
+}
 PERIODIC = ["sweep", "chain", "lake", "reanalyse", "mine", "score", "graph", "report"]
 PERIOD = 1200
 RERUN_SECONDS = 3600
