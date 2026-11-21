@@ -29,8 +29,9 @@ class TreeEntry(BaseModel):
 
 class FileChange(BaseModel):
     path: str
-    additions: int
-    deletions: int
+    status: str = "M"
+    additions: int = 0
+    deletions: int = 0
     previous_path: str | None = None
 
 
@@ -89,13 +90,24 @@ async def run(
 
 
 async def clone(
-    full_name: str, destination: Path, since: str, token: str | None
+    full_name: str,
+    destination: Path,
+    since: str,
+    token: str | None,
+    patterns: list[str],
 ) -> None:
     if destination.exists():
         shutil.rmtree(destination)
     env = environment(token)
     url = f"https://github.com/{full_name}.git"
-    base = ["clone", "--quiet", "--no-tags", "--single-branch"]
+    base = [
+        "clone",
+        "--quiet",
+        "--no-tags",
+        "--single-branch",
+        "--filter=blob:none",
+        "--no-checkout",
+    ]
     try:
         await run(
             [*base, f"--shallow-since={since}", url, str(destination)],
@@ -106,13 +118,20 @@ async def clone(
     except GitFailed as first:
         if destination.exists():
             shutil.rmtree(destination)
-        if "Repository not found" in str(first) or "not found" in str(first).lower():
+        if "not found" in str(first).lower():
             raise
         await run(
             [*base, "--depth=1", url, str(destination)],
             env=env,
             timeout=CLONE_TIMEOUT,
         )
+    await run(
+        ["sparse-checkout", "set", "--no-cone", *patterns],
+        destination,
+        env,
+        CLONE_TIMEOUT,
+    )
+    await run(["checkout", "--quiet", "HEAD"], destination, env, CLONE_TIMEOUT)
 
 
 async def tracked_files(root: Path) -> list[TreeEntry]:
@@ -165,15 +184,13 @@ def parse_log(raw: str) -> list[CommitRecord]:
         files: list[FileChange] = []
         for line in stats.splitlines():
             cells = line.split("\t")
-            if len(cells) != 3:
+            if len(cells) < 2 or not cells[0][:1].isalpha():
                 continue
-            path, previous = target_path(cells[2])
             files.append(
                 FileChange(
-                    path=path,
-                    additions=int(cells[0]) if cells[0].isdigit() else 0,
-                    deletions=int(cells[1]) if cells[1].isdigit() else 0,
-                    previous_path=previous,
+                    path=cells[-1],
+                    status=cells[0][:1],
+                    previous_path=cells[1] if len(cells) == 3 else None,
                 )
             )
         commits.append(
@@ -197,8 +214,7 @@ async def commit_log(root: Path, since: str, until: str) -> list[CommitRecord]:
             "log",
             f"--since={since}",
             f"--until={until}T23:59:59",
-            "--numstat",
-            "--no-renames",
+            "--name-status",
             f"--format={fmt}{FIELD}",
         ],
         root,
@@ -207,32 +223,32 @@ async def commit_log(root: Path, since: str, until: str) -> list[CommitRecord]:
     return parse_log(out.decode(errors="replace"))
 
 
-async def rust_patches(root: Path, since: str, until: str) -> dict[str, list[str]]:
-    out = await run(
-        [
-            "log",
-            f"--since={since}",
-            f"--until={until}T23:59:59",
-            "--no-merges",
-            "-p",
-            "-U0",
-            "--no-color",
-            f"--format={RECORD}%H",
-            "--",
-            "*.rs",
-        ],
-        root,
-        timeout=LOG_TIMEOUT,
-    )
+async def rust_patches(root: Path, shas: list[str]) -> dict[str, list[str]]:
     patches: dict[str, list[str]] = {}
-    for record in out.decode(errors="replace").split(RECORD):
-        sha, _, body = record.partition("\n")
-        if not sha.strip():
-            continue
-        lines = [
-            line
-            for line in body.splitlines()
-            if line[:1] in "+-" and not line.startswith(("+++", "---"))
-        ]
-        patches[sha.strip()] = lines[:MAX_PATCH_LINES]
+    for offset in range(0, len(shas), 40):
+        chunk = shas[offset : offset + 40]
+        out = await run(
+            [
+                "show",
+                "--no-color",
+                "-U0",
+                "--no-renames",
+                f"--format={RECORD}%H",
+                *chunk,
+                "--",
+                "*.rs",
+            ],
+            root,
+            timeout=LOG_TIMEOUT,
+        )
+        for record in out.decode(errors="replace").split(RECORD):
+            sha, _, body = record.partition("\n")
+            if not sha.strip():
+                continue
+            lines = [
+                line
+                for line in body.splitlines()
+                if line[:1] in "+-" and not line.startswith(("+++", "---"))
+            ]
+            patches[sha.strip()] = lines[:MAX_PATCH_LINES]
     return patches

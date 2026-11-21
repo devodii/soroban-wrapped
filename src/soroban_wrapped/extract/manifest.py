@@ -28,6 +28,7 @@ class CrateInfo(BaseModel):
     is_contract: bool = False
     crate_types: list[str] = Field(default_factory=list)
     soroban_sdk_requirement: str | None = None
+    soroban_sdk_resolved: str | None = None
     features: dict[str, list[str]] = Field(default_factory=dict)
     profiles: dict[str, dict] = Field(default_factory=dict)
     metadata: dict = Field(default_factory=dict)

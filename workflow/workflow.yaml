@@ -43,6 +43,10 @@ clone:
   max_repo_kb: 750000
   concurrency: 6
   keep: false
+  require_language: Rust
+  max_rust_files: 4000
+  max_signal_files: 1500
+  signal_suffixes: [.rs, .ts, .tsx, .js, .jsx, .mjs, .py, .go, .sh, .toml, .json, .md, .yml, .yaml, .env]
   rust_suffixes: [.rs]
   manifests: [Cargo.toml, Cargo.lock]
   max_file_bytes: 1000000

@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from datetime import UTC, datetime
 from typing import Any
 
@@ -62,6 +62,19 @@ async def code_slices(github: GithubClient, query: str) -> list[str]:
         f"{query} size:{lo}..{hi}"
         for lo, hi in await split_range(0, SIZE_CEILING, count)
     ]
+
+
+async def pages(
+    github: GithubClient, path: str, query: str, kind: Search, start: int = 1
+) -> AsyncIterator[tuple[int, list[dict[str, Any]]]]:
+    for page in range(start, RESULT_CAP // PAGE_SIZE + 1):
+        data = await github.json(
+            path, {"q": query, "per_page": PAGE_SIZE, "page": page}, search=kind
+        )
+        items = data["items"] if data else []
+        yield page, items
+        if len(items) < PAGE_SIZE:
+            return
 
 
 async def hits(
