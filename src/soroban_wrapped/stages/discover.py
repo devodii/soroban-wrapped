@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from datetime import UTC, datetime, time
 
 from pydantic import BaseModel, Field
@@ -31,12 +32,53 @@ class Found(BaseModel):
 
 class Harvest(BaseModel):
     repos: dict[str, Found] = Field(default_factory=dict)
+    known: set[str] = Field(default_factory=set)
+    stored: set[str] = Field(default_factory=set)
 
     def note(self, full_name: str, via: str, crate: str | None = None) -> None:
         found = self.repos.setdefault(full_name.lower(), Found(full_name=full_name))
         found.via.add(via)
         if crate:
             found.crates.add(crate)
+
+
+async def flush(context: Context, harvest: Harvest) -> None:
+    excluded = {r.lower() for r in context.workflow.discover.exclude_repos}
+    pending = [
+        found for key, found in sorted(harvest.repos.items()) if key not in excluded
+    ]
+    rows = [
+        (
+            found.full_name,
+            f"https://github.com/{found.full_name}",
+            found.full_name.split("/")[0],
+            sorted(found.via),
+            sorted(found.crates),
+        )
+        for found in pending
+    ]
+    async with context.pool.acquire() as connection:
+        await connection.executemany(load_sql("upsert_discovered"), rows)
+    context.items = len(rows)
+
+
+async def finish_query(
+    context: Context, harvest: Harvest, kind: str, query: str, started: float
+) -> None:
+    names = {
+        key for key, found in harvest.repos.items() if f"{kind}:{query}" in found.via
+    }
+    async with context.pool.acquire() as connection:
+        await connection.execute(
+            load_sql("upsert_query_stat"),
+            kind,
+            query,
+            len(names),
+            len(names - harvest.known),
+            time.monotonic() - started,
+        )
+    await flush(context, harvest)
+    log.info("saved %s repos after %s", len(harvest.repos), query)
 
 
 async def search_repositories(context: Context, harvest: Harvest) -> None:
@@ -46,6 +88,7 @@ async def search_repositories(context: Context, harvest: Harvest) -> None:
     excluded = {o.lower() for o in context.workflow.discover.exclude_owners}
 
     async def one(query: str) -> None:
+        started = time.monotonic()
         expanded = context.workflow.expand(query)
         slices = await repository_slices(context.github, expanded, since, until)
         for sliced in slices:
@@ -55,6 +98,7 @@ async def search_repositories(context: Context, harvest: Harvest) -> None:
                 if item["owner"]["login"].lower() not in excluded:
                     harvest.note(item["full_name"], f"search:{query}")
         log.info("repository search: %s slices for %s", len(slices), query)
+        await finish_query(context, harvest, "search", query, started)
 
     await asyncio.gather(
         *(patient(q, one) for q in context.workflow.discover.repository_queries)
@@ -65,6 +109,7 @@ async def search_code(context: Context, harvest: Harvest) -> None:
     excluded = {o.lower() for o in context.workflow.discover.exclude_owners}
 
     async def one(query: str) -> None:
+        started = time.monotonic()
         slices = await code_slices(context.github, query)
         for sliced in slices:
             for item in await hits(context.github, "/search/code", sliced, "code"):
@@ -72,6 +117,7 @@ async def search_code(context: Context, harvest: Harvest) -> None:
                 if repository["owner"]["login"].lower() not in excluded:
                     harvest.note(repository["full_name"], f"code:{query}")
         log.info("code search: %s slices for %s", len(slices), query)
+        await finish_query(context, harvest, "code", query, started)
 
     await asyncio.gather(
         *(patient(q, one) for q in context.workflow.discover.code_queries)
@@ -91,30 +137,22 @@ async def crates_io(context: Context, harvest: Harvest) -> None:
         found = await crate_repository(context.http, throttle, name)
         if found.repo and normalize_repo(found.repo):
             harvest.note(found.repo, f"crates.io:{via}", name)
+    await flush(context, harvest)
     log.info("crates.io: %s crates looked up", len(names))
 
 
 @stage("github.discover")
 async def discover(context: Context, _: Stage) -> None:
     harvest = Harvest()
+    async with context.pool.acquire() as connection:
+        harvest.known = {
+            row["full_name"].lower()
+            for row in await connection.fetch("SELECT full_name FROM repos")
+        }
     await asyncio.gather(
         search_repositories(context, harvest),
         search_code(context, harvest),
         crates_io(context, harvest),
     )
-    excluded = {r.lower() for r in context.workflow.discover.exclude_repos}
-    rows = [
-        (
-            found.full_name,
-            f"https://github.com/{found.full_name}",
-            found.full_name.split("/")[0],
-            sorted(found.via),
-            sorted(found.crates),
-        )
-        for key, found in sorted(harvest.repos.items())
-        if key not in excluded
-    ]
-    async with context.pool.acquire() as connection:
-        await connection.executemany(load_sql("upsert_discovered"), rows)
-    context.items = len(rows)
-    log.info("discovered %s repos", len(rows))
+    await flush(context, harvest)
+    log.info("discovered %s repos", len(harvest.repos))
