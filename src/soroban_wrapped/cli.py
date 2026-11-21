@@ -79,6 +79,22 @@ def main() -> None:
     commands.add_parser(
         "drive", help="autopilot: run every stage, restart on crashes, follow new work"
     )
+    lake = commands.add_parser(
+        "lake", help="summarise ledger archive days into small parquet files"
+    )
+    lake.add_argument("--network", default="mainnet")
+    lake.add_argument("--from", dest="first", required=True)
+    lake.add_argument("--to", dest="last", required=True)
+    lake.add_argument("--out", default="out/lake")
+    lake.add_argument("--threads", type=int, default=32)
+    lake.add_argument(
+        "--limit-ledgers", type=int, help="read only this many ledgers per day"
+    )
+    imported = commands.add_parser(
+        "lake-import", help="load summarised lake files into the database"
+    )
+    imported.add_argument("--dir", default="out/lake")
+    imported.add_argument("--network", default="mainnet")
     schema = commands.add_parser("schema", help="manage the database schema")
     actions = schema.add_subparsers(dest="action", required=True)
     actions.add_parser("plan", help="write the pending changes to the next migration")
@@ -93,6 +109,23 @@ def main() -> None:
     match args.command:
         case "run":
             raise SystemExit(run_stages(args))
+        case "lake":
+            from soroban_wrapped.chain.lake_run import run_lake
+
+            asyncio.run(
+                run_lake(
+                    args.network,
+                    args.first,
+                    args.last,
+                    args.out,
+                    args.threads,
+                    args.limit_ledgers,
+                )
+            )
+        case "lake-import":
+            from soroban_wrapped.chain.lake_import import run_import
+
+            asyncio.run(run_import(args.dir, args.network))
         case "drive":
             from soroban_wrapped.drive import drive
 

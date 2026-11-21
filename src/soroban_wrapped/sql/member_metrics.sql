@@ -43,7 +43,7 @@ SELECT
         SELECT count(DISTINCT mr.repo)
         FROM member_repos AS mr
         INNER JOIN crate_dependencies AS cd ON mr.repo = cd.repo
-        WHERE cd.name = ANY($4::text[])
+        WHERE cd.name = any($4::text[])
     ) AS adopted_repos,
     (SELECT count(*) FROM fixes) AS fix_commits,
     (
