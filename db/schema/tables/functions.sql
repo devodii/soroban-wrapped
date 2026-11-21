@@ -1,0 +1,23 @@
+CREATE TABLE functions (
+    repo text,
+    path text,
+    line_start integer,
+    name text,
+    line_end integer NOT NULL,
+    loc integer NOT NULL,
+    impl_type text,
+    trait_name text,
+    visibility text,
+    attributes text[] DEFAULT '{}' NOT NULL,
+    params jsonb DEFAULT '[]' NOT NULL,
+    return_type text,
+    is_contract_fn boolean DEFAULT FALSE NOT NULL,
+    is_test boolean DEFAULT FALSE NOT NULL,
+    body_hash text NOT NULL,
+    shape_hash text NOT NULL,
+    shape_nodes integer NOT NULL,
+    calls text[] DEFAULT '{}' NOT NULL,
+    macros text[] DEFAULT '{}' NOT NULL,
+    CONSTRAINT functions_pkey PRIMARY KEY (repo, path, line_start, name),
+    CONSTRAINT functions_file_fkey FOREIGN KEY (repo, path) REFERENCES source_files (repo, path) ON DELETE CASCADE
+);

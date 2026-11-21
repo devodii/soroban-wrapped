@@ -1,0 +1,19 @@
+CREATE TABLE issues (
+    repo text,
+    number integer,
+    kind text NOT NULL,
+    title text NOT NULL,
+    body text,
+    state text NOT NULL,
+    author_login text,
+    labels text[] DEFAULT '{}' NOT NULL,
+    comments integer DEFAULT 0 NOT NULL,
+    created_at timestamptz NOT NULL,
+    closed_at timestamptz,
+    merged_at timestamptz,
+    is_bug boolean DEFAULT FALSE NOT NULL,
+    bug_classes text[] DEFAULT '{}' NOT NULL,
+    url text NOT NULL,
+    CONSTRAINT issues_pkey PRIMARY KEY (repo, number),
+    CONSTRAINT issues_repo_fkey FOREIGN KEY (repo) REFERENCES repos (full_name) ON DELETE CASCADE
+);
