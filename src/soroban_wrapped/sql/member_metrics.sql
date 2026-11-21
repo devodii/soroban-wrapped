@@ -16,7 +16,10 @@ fixes AS (
     FROM commit_files AS cf
     INNER JOIN commits AS c ON cf.repo = c.repo AND cf.sha = c.sha
     INNER JOIN members AS mm ON cf.repo = mm.repo AND cf.path = mm.path
-    WHERE c.is_fix
+    WHERE
+        c.is_fix
+        AND c.touches_rust
+        AND c.message !~* '(typo|\mci\M|lint|format|readme|\mdocs?\M|workflow|dependabot|\mbump\M|changelog)'
 )
 
 SELECT

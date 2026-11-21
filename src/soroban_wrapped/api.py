@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
+from soroban_wrapped.config import ROOT
 from soroban_wrapped.database import open_pool
 from soroban_wrapped.sql_loader import load_sql
 
@@ -86,6 +87,13 @@ def create_app() -> FastAPI:
     async def get_overview(request: Request, limit: int = 500) -> JSONResponse:
         data = await overview(request.app.state.pool, min(limit, 5000))
         return JSONResponse(json.loads(json.dumps(data, default=str)))
+
+    @app.get("/report")
+    async def report() -> FileResponse:
+        path = ROOT / "out" / "report.md"
+        if not path.exists():
+            raise HTTPException(404, "no report yet")
+        return FileResponse(path, media_type="text/plain; charset=utf-8")
 
     @app.get("/api/repo")
     async def get_repo(request: Request, name: str) -> JSONResponse:

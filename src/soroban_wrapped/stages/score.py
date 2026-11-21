@@ -49,6 +49,7 @@ async def score_seeds(context: Context, totals_: tuple[int, int]) -> int:
             "components": scored["components"],
             "weighted": scored["weighted"],
             "copy_share": scored["copy_share"],
+            "fix_examples": scored.get("fix_examples", []),
             "roles": breakdown,
             "share_of_repos": round(share, 4),
             "thresholds": {

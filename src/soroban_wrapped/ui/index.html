@@ -49,6 +49,7 @@
   <h1>Soroban Wrapped</h1>
   <nav id="tabs"></nav>
   <span class="spacer"></span>
+  <a class="pill" href="/report" target="_blank">report</a>
   <label class="pill"><input type="checkbox" id="auto" checked> live</label>
   <span class="pill" id="stamp"></span>
 </header>
@@ -260,6 +261,7 @@ async function openProposal(p) {
     <p>${esc(p.summary)}</p>
     <h4>Why it scores this</h4>${bars || '<span class="muted">no breakdown yet</span>'}
     <p class="muted">${fmt(mt.owners)} owners, ${fmt(mt.repos)} repos, written ${fmt(mt.occurrences)} times. ${fmt(mt.recent_repos)} repos active in the last 90 days, ${fmt(mt.adopted_repos)} already on a library, ${fmt(mt.mainnet_repos)} on mainnet.</p>
+    ${(ev.fix_examples || []).length ? '<h4>Real fixes that touched this code</h4><ul>' + ev.fix_examples.map((f) => '<li><a target="_blank" href="https://github.com/' + esc(f.repo) + '/commit/' + esc(f.sha) + '">' + esc(f.repo) + '</a> <span class="muted">' + esc(f.date) + '</span><br>' + esc(f.message) + '</li>').join('') + '</ul>' : ''}
     ${ev.roles ? '<h4>Pattern roles</h4><pre style="white-space:pre-wrap">' + esc(JSON.stringify(ev.roles, null, 1)) + '</pre>' : ''}
     ${(p.sketch || sm.snippet) ? '<h4>' + (sm.repo ? 'Real example from <a target="_blank" href="https://github.com/' + esc(sm.repo) + '/blob/HEAD/' + esc(sm.path || '') + '#L' + (sm.start || 1) + '">' + esc(sm.repo) + '</a>' : 'Sketch') + '</h4><pre style="overflow:auto;background:var(--bg);padding:10px;border-radius:8px"><code>' + esc(sm.snippet || p.sketch) + '</code></pre>' : ''}
     ${ev.names ? '<h4>Names people reinvent</h4><p>' + ev.names.map((n) => esc(n.name) + ' <span class="muted">(' + n.owners + ')</span>').join(', ') + '</p>' : ''}

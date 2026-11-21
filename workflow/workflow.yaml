@@ -172,3 +172,4 @@ stages:
   - {id: reanalyse, uses: catalog.reanalyse, needs: [clone]}
   - {id: score, uses: catalog.score, needs: [mine]}
   - {id: graph, uses: graph.build, needs: [score]}
+  - {id: report, uses: report.write, needs: [graph]}

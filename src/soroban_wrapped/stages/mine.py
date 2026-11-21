@@ -64,8 +64,20 @@ async def evaluate(
         total_repos=totals_[1],
     )
     metrics.owners = owners
-    scored = score(metrics, context.workflow.improve.score.weights)
-    return metrics, scored.model_dump()
+    scored = score(metrics, context.workflow.improve.score.weights).model_dump()
+    examples = await context.pool.fetch(
+        load_sql("fix_examples"), members[0], members[1]
+    )
+    scored["fix_examples"] = [
+        {
+            "repo": e["repo"],
+            "sha": e["sha"][:10],
+            "message": e["message"][:140],
+            "date": str(e["committed_at"])[:10],
+        }
+        for e in examples
+    ]
+    return metrics, scored
 
 
 async def save(
@@ -86,6 +98,7 @@ async def save(
         "components": scored["components"],
         "weighted": scored["weighted"],
         "copy_share": scored["copy_share"],
+        "fix_examples": scored.get("fix_examples", []),
         "sample": sample,
         **(extra or {}),
     }
