@@ -56,6 +56,16 @@ Decisions made while building, with the reason, so they can be challenged. Newes
 - **A report is written every 20 minutes** to `out/report.md` (served at `/report`): counts with changes since the last report, stage health, failed units, top proposals, what the miner found, disk and database size.
 - **Disk guard:** extraction pauses below 3 GB free instead of crashing.
 
+## Tooling needs for RFPs (new core goal)
+- **The goal widened from "Rust macros" to "tooling the Stellar ecosystem needs".** Needs are first-class records (`tooling_needs`) with ranked evidence (`need_evidence`), the existing tools that partly cover them (`need_tools`, from `tool_catalog`), a demand score and an RFP draft.
+- **All languages count.** An ecosystem stage fingerprints every in-scope repo (any language) through batched GraphQL file lookups, not clones: dependencies from npm, pip, Go, Cargo, Composer, Gem, pub, Swift, Gradle and Maven manifests, plus READMEs, CI workflows, scripts, Makefiles, Dockerfiles and env examples. Two phases (root listing first, then only existing subfolders) keep it at about 2 repos per second.
+- **Relevance is Postgres full-text search**, indexed with GIN on issues, documents and repo descriptions, ranked with `ts_rank_cd`. It matches meaning through stemming and phrases, needs no extra service, and is fast enough to rerun every cycle.
+- **Seeds are hypotheses, like the proposals.** 41 seed themes and 38 tools live in YAML. Mined themes come from the data.
+- **Store everything useful.** Every matched evidence row keeps its relevance, snippet and link so the data can be reused for other purposes later.
+
+## Mistake and fix: ledger days
+- I assumed a ledger every 5 seconds (17,280 a day). Mainnet averages about 5.8 seconds (about 15,000 a day), so the importer rejected every day as partial and then deleted the artifacts of batch 1. Fixed: the partial-day threshold is 10,000 ledgers, and artifacts are only deleted when days were actually imported. Batch 1 was re-run.
+
 ## Open for the owner
 - Approve the full-year on-chain run on GitHub Actions (or choose an AWS spot VM or BigQuery instead).
 - Add the third GitHub token to `.env`.
