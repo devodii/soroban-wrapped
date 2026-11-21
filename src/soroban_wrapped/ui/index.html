@@ -34,7 +34,7 @@
   .mainnet { color:var(--good); border-color:var(--good); } .testnet { color:var(--warn); border-color:var(--warn); }
   .ok { color:var(--good); } .bad { color:var(--bad); } .muted { color:var(--muted); }
   .scroll { max-height:70vh; overflow:auto; border-radius:10px; }
-  #graph { height:72vh; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  #graph { height:68vh; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
   aside { position:fixed; top:0; right:0; bottom:0; width:min(460px,100%); background:var(--panel); border-left:1px solid var(--line); padding:18px; overflow:auto; transform:translateX(100%); transition:transform .18s; z-index:10; }
   aside.open { transform:none; }
   .comment { border-top:1px solid var(--line); padding:8px 0; }
@@ -54,7 +54,7 @@
 </header>
 <main id="view"></main>
 <aside id="drawer"></aside>
-<script src="https://unpkg.com/3d-force-graph@1.73.4/dist/3d-force-graph.min.js"></script>
+<script src="https://unpkg.com/force-graph@1.43.5/dist/force-graph.min.js"></script>
 <script>
 const TABS = ['overview','repos','patterns','proposals','candidates','chain','discovery','graph'];
 const state = { tab: location.hash.slice(1) || 'overview', data: null, sort: {}, filter: '' };
@@ -135,7 +135,7 @@ const VIEWS = {
   discovery(d) {
     return `<p class="muted">How well each search query finds soroban repos, so the workflow can retire the weak ones.</p>` + table('queries', [{key:'kind',label:'kind'},{key:'query',label:'query',render:(r)=>`<code>${esc(r.query)}</code>`},{key:'hits',label:'hits',num:1},{key:'new_repos',label:'new',num:1},{key:'soroban_repos',label:'soroban',num:1},{key:'seconds',label:'sec',num:1,render:(r)=>Number(r.seconds).toFixed(0)}], d.queries);
   },
-  graph() { return `<div id="graph"><div class="empty">loading graph…</div></div>`; },
+  graph() { return `<div id="graphbar" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px"></div><div id="legend" style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px" class="muted"></div><div id="graph"><div class="empty">loading graph…</div></div><p class="muted" id="graphnote"></p>`; },
 };
 
 async function draw() {
@@ -153,15 +153,91 @@ async function load() {
     if (state.tab !== 'graph' || !state.graphShown) draw();
   } catch (e) { $('#stamp').textContent = 'offline'; }
 }
+const KIND = {
+  proposal: { color: '#f0883e', label: 'proposal', hint: 'something we could build, size = score' },
+  repo: { color: '#7c9cff', label: 'repo', hint: 'writes it by hand, size = stars' },
+  bug_class: { color: '#f85149', label: 'bug class', hint: 'what the proposal would prevent' },
+  library: { color: '#a371f7', label: 'library', hint: 'already covers a proposal' },
+  contract: { color: '#2dd4bf', label: 'contract', hint: 'deployed on chain' },
+};
+const EDGE = {
+  hand_rolls: ['#8b949e', 'repo writes it by hand'], prevents: ['#f85149', 'proposal prevents this bug'],
+  covered_by: ['#a371f7', 'a library already solves it'], uses_library: ['#a371f7', 'repo uses the library'],
+  deploys: ['#2dd4bf', 'repo deploys the contract'], calls: ['#2dd4bf', 'contract calls contract'],
+};
+const gstate = { raw: null, focus: null, kinds: new Set(['proposal','repo','bug_class','library','contract']), selected: null, query: '', graph: null };
+function buildView() {
+  const { nodes, edges } = gstate.raw;
+  let keepNodes = new Set(nodes.map((n) => n.id)), note = '';
+  if (gstate.focus) {
+    const f = gstate.focus, near = new Set([f]);
+    edges.forEach((e) => { if (e.src === f) near.add(e.dst); if (e.dst === f) near.add(e.src); });
+    const repos = [...near].filter((id) => id.startsWith('repo:')).map((id) => gstate.byId[id]).sort((a, b) => ((b.props || {}).weight || 0) - ((a.props || {}).weight || 0));
+    const shown = new Set(repos.slice(0, 150).map((n) => n.id));
+    const total = repos.length;
+    keepNodes = new Set([f, ...[...near].filter((id) => !id.startsWith('repo:')), ...shown]);
+    edges.forEach((e) => { if (shown.has(e.src) && gstate.byId[e.dst] && gstate.byId[e.dst].kind === 'library') keepNodes.add(e.dst); });
+    note = `Showing the ${shown.size} biggest of ${total} repos that write "${gstate.byId[f].label}" by hand.`;
+  } else { note = 'Everything at once. Pick a proposal above to focus, this view is dense on purpose.'; }
+  const nodeList = nodes.filter((n) => keepNodes.has(n.id) && gstate.kinds.has(n.kind));
+  const ids = new Set(nodeList.map((n) => n.id));
+  const links = edges.filter((e) => ids.has(e.src) && ids.has(e.dst)).map((e) => ({ source: e.src, target: e.dst, kind: e.kind, value: Number(e.weight) }));
+  $('#graphnote').textContent = note + ` ${nodeList.length} nodes, ${links.length} links.`;
+  return { nodes: nodeList.map((n) => ({ ...n })), links };
+}
+function neighbours(id, links) {
+  const set = new Set([id]);
+  links.forEach((l) => { const s = l.source.id ?? l.source, t = l.target.id ?? l.target; if (s === id) set.add(t); if (t === id) set.add(s); });
+  return set;
+}
+function paintGraph() {
+  const data = buildView(), el = $('#graph'); el.innerHTML = '';
+  const q = gstate.query.trim().toLowerCase();
+  let near = null;
+  const g = ForceGraph()(el).width(el.clientWidth).height(el.clientHeight).graphData(data).backgroundColor('#0d1117')
+    .nodeRelSize(1).cooldownTicks(120).d3VelocityDecay(0.3)
+    .nodeVal((n) => { const w = (n.props || {}).weight || 1; return n.kind === 'proposal' ? 30 + w : n.kind === 'repo' ? 3 + w * 1.5 : 36; })
+    .nodeLabel((n) => `<b>${n.label}</b><br>${KIND[n.kind].label}${n.kind === 'proposal' ? ' · score ' + Number((n.props || {}).score).toFixed(1) : ''}${n.kind === 'repo' ? ' · ★ ' + ((n.props || {}).stars ?? '') : ''}`)
+    .linkColor((l) => { const lit = !near || (near.has(l.source.id) && near.has(l.target.id)); return lit ? (EDGE[l.kind] || ['#8b949e'])[0] + (near ? 'cc' : '55') : '#ffffff08'; })
+    .linkWidth((l) => (near ? 1.4 : 0.6)).linkDirectionalArrowLength((l) => (l.kind === 'hand_rolls' ? 0 : 3)).linkDirectionalArrowRelPos(1)
+    .nodeCanvasObject((n, ctx, scale) => {
+      const r = Math.sqrt(n.kind === 'proposal' ? 30 + ((n.props || {}).weight || 1) : n.kind === 'repo' ? 3 + ((n.props || {}).weight || 1) * 1.5 : 36);
+      const dim = (near && !near.has(n.id)) || (q && !n.label.toLowerCase().includes(q) && n.kind === 'repo');
+      ctx.globalAlpha = dim ? 0.12 : 1; ctx.fillStyle = KIND[n.kind].color; ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 2 * Math.PI); ctx.fill();
+      if (gstate.selected === n.id) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2 / scale; ctx.stroke(); }
+      const label = n.kind !== 'repo' || scale > 2.6 || (near && near.has(n.id)) || (q && n.label.toLowerCase().includes(q));
+      if (label && !dim) { ctx.font = `${Math.max(10, 12 / Math.sqrt(scale)) }px sans-serif`; ctx.fillStyle = '#e6edf3'; ctx.textAlign = 'center'; ctx.fillText(n.label.length > 38 ? n.label.slice(0, 36) + '…' : n.label, n.x, n.y + r + 10 / Math.sqrt(scale)); }
+      ctx.globalAlpha = 1;
+    })
+    .nodePointerAreaPaint((n, color, ctx) => { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(n.x, n.y, 8, 0, 2 * Math.PI); ctx.fill(); })
+    .onNodeClick((n) => {
+      gstate.selected = n.id; near = neighbours(n.id, data.links); g.linkColor(g.linkColor());
+      if (n.kind === 'repo') openRepo(n.label);
+      else if (n.kind === 'proposal') { const pr = (state.data.proposals || []).find((p) => 'proposal:' + p.id === n.id); if (pr) openProposal(pr); }
+      else if (n.kind === 'contract') window.open('https://stellar.expert/explorer/' + ((n.props || {}).network === 'mainnet' ? 'public' : 'testnet') + '/contract/' + n.id.split(':')[2], '_blank');
+    })
+    .onBackgroundClick(() => { gstate.selected = null; near = null; g.linkColor(g.linkColor()); });
+  gstate.graph = g;
+  if (q) { const hit = data.nodes.find((n) => n.label.toLowerCase().includes(q)); if (hit) setTimeout(() => g.centerAt(hit.x, hit.y, 600).zoom(4, 600), 700); }
+  else setTimeout(() => g.zoomToFit(400, 60), 900);
+}
 async function drawGraph() {
   const g = await (await fetch('/api/graph')).json();
   const el = $('#graph');
   if (!g.nodes.length) { el.innerHTML = '<div class="empty">The graph is built by the graph stage once repos, calls and chain data are in.</div>'; return; }
-  el.innerHTML = ''; state.graphShown = true;
-  const colors = { repo:'#7c9cff', crate:'#a371f7', pattern:'#3fb950', proposal:'#f0883e', bug_class:'#f85149', contract:'#58a6ff', wasm:'#d29922' };
-  ForceGraph3D()(el).graphData({ nodes: g.nodes.map((n) => ({...n})), links: g.edges.map((e) => ({ source:e.src, target:e.dst, kind:e.kind, value:Number(e.weight) })) })
-    .nodeLabel((n) => `${n.kind}: ${n.label}`).nodeColor((n) => colors[n.kind] || '#8b949e').nodeVal((n) => 1 + Math.log1p((n.props||{}).weight || 1))
-    .linkOpacity(0.3).linkWidth((l) => Math.min(3, Math.log1p(l.value)/2)).backgroundColor('#0d1117').onNodeClick((n) => n.kind === 'repo' && openRepo(n.label));
+  gstate.raw = g; gstate.byId = Object.fromEntries(g.nodes.map((n) => [n.id, n]));
+  if (gstate.focus === null && !gstate.touched) { const top = g.nodes.filter((n) => n.kind === 'proposal').sort((a, b) => b.props.score - a.props.score)[0]; gstate.focus = top ? top.id : null; }
+  const proposals = g.nodes.filter((n) => n.kind === 'proposal').sort((a, b) => b.props.score - a.props.score);
+  $('#graphbar').innerHTML = `<label class="pill">Focus on <select id="gfocus" style="background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px;max-width:420px"><option value="">everything (dense)</option>${proposals.map((p) => `<option value="${esc(p.id)}" ${p.id === gstate.focus ? 'selected' : ''}>${esc(p.label)} (${Number(p.props.score).toFixed(0)})</option>`).join('')}</select></label>
+    <input type="search" id="gsearch" placeholder="find a repo or node…" value="${esc(gstate.query)}" style="width:240px">
+    ${Object.entries(KIND).map(([k, v]) => `<label class="pill"><input type="checkbox" data-kind="${k}" ${gstate.kinds.has(k) ? 'checked' : ''}> ${v.label}</label>`).join('')}
+    <button id="greset">reset view</button>`;
+  $('#legend').innerHTML = Object.values(KIND).map((v) => `<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${v.color};margin-right:6px"></span><b>${v.label}</b>: ${v.hint}</span>`).join('') + '<span>lines: repo → proposal means "writes it by hand", proposal → red means "prevents this bug"</span>';
+  $('#gfocus').onchange = (e) => { gstate.focus = e.target.value || null; gstate.touched = true; paintGraph(); };
+  $('#gsearch').oninput = (e) => { gstate.query = e.target.value; clearTimeout(gstate.t); gstate.t = setTimeout(paintGraph, 300); };
+  document.querySelectorAll('[data-kind]').forEach((c) => (c.onchange = () => { c.checked ? gstate.kinds.add(c.dataset.kind) : gstate.kinds.delete(c.dataset.kind); paintGraph(); }));
+  $('#greset').onclick = () => { gstate.query = ''; gstate.selected = null; gstate.kinds = new Set(Object.keys(KIND)); drawGraph(); };
+  state.graphShown = true; paintGraph();
 }
 async function openProposal(p) {
   const rows = await (await fetch('/api/comments?target_kind=proposal&target_id=' + encodeURIComponent(p.id))).json();
@@ -189,10 +265,12 @@ async function openProposal(p) {
 async function openRepo(name) {
   const rows = await (await fetch('/api/comments?target_kind=repo&target_id=' + encodeURIComponent(name))).json();
   const d = $('#drawer'); d.classList.add('open');
-  const r = (state.data.repos || []).find((x) => x.full_name === name) || {};
+  let r = (state.data.repos || []).find((x) => x.full_name === name);
+  if (!r) { try { r = await (await fetch('/api/repo?name=' + encodeURIComponent(name))).json(); } catch (e) { r = {}; } }
   d.innerHTML = `<button onclick="document.querySelector('#drawer').classList.remove('open')">close</button>
     <h3><a href="https://github.com/${esc(name)}" target="_blank">${esc(name)}</a></h3>
     <p>${nets(r)} <span class="muted">${fmt(r.rust_loc)} rust loc · ${fmt(r.pattern_hits)} pattern hits · ★ ${fmt(r.stars)}</span></p>
+    ${r.description ? '<p>' + esc(r.description) + '</p>' : ''}${(r.proposals || []).length ? '<h4>Hand-rolls</h4><ul>' + r.proposals.slice(0, 12).map((p) => '<li>' + esc(p) + '</li>').join('') + '</ul>' : ''}
     <h4>Notes</h4><div>${rows.map((c) => `<div class="comment"><b>${esc(c.author)}</b> <span class="muted">${esc(String(c.created_at).slice(0,16))}</span><br>${esc(c.body)}</div>`).join('') || '<div class="muted">no notes yet</div>'}</div>
     <p><input type="text" id="who" placeholder="your name" value="${esc(localStorage.getItem('who')||'')}" style="width:100%;margin-bottom:6px"><textarea id="note" placeholder="leave a note on this repo"></textarea></p>
     <button class="primary" id="send">Add note</button>`;

@@ -87,6 +87,14 @@ def create_app() -> FastAPI:
         data = await overview(request.app.state.pool, min(limit, 5000))
         return JSONResponse(json.loads(json.dumps(data, default=str)))
 
+    @app.get("/api/repo")
+    async def get_repo(request: Request, name: str) -> JSONResponse:
+        async with request.app.state.pool.acquire() as connection:
+            row = await connection.fetchrow(load_sql("overview_repo"), name)
+        if row is None:
+            raise HTTPException(404, "unknown repo")
+        return JSONResponse(json.loads(json.dumps(dict(row), default=str)))
+
     @app.get("/api/graph")
     async def get_graph(request: Request) -> JSONResponse:
         async with request.app.state.pool.acquire() as connection:
