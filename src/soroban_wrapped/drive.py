@@ -16,7 +16,17 @@ FOLLOWED = {
     "clone": "clone",
     "history": "history",
 }
-PERIODIC = ["sweep", "chain", "lake", "reanalyse", "mine", "score", "graph", "report"]
+PERIODIC = [
+    "sweep",
+    "chain",
+    "lake",
+    "reanalyse",
+    "mine",
+    "score",
+    "needs",
+    "graph",
+    "report",
+]
 PERIOD = 1200
 RERUN_SECONDS = 3600
 IDLE_PAUSE = 45

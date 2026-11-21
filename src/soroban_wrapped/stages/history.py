@@ -21,6 +21,7 @@ BUG_LABEL = re.compile(r"(?i)bug|defect|security|vulnerab|regression|crash|panic
 ITEM = """
   number title body state createdAt closedAt url
   comments {{ totalCount }}
+  reactions {{ totalCount }}
   author {{ login }}
   labels(first: 12) {{ nodes {{ name }} }}
 """
@@ -124,6 +125,7 @@ def issue_row(context: Context, repo: str, item: dict, kind: str) -> tuple:
         any(BUG_LABEL.search(label) for label in labels) or bool(fix.search(title)),
         classes,
         item["url"],
+        (item.get("reactions") or {}).get("totalCount", 0),
     )
 
 

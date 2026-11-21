@@ -17,7 +17,9 @@ MIN_OVERLAP = 30
 
 
 class CommentIn(BaseModel):
-    target_kind: str = Field(pattern="^(repo|proposal|pattern|contract|node)$")
+    target_kind: str = Field(
+        pattern="^(repo|proposal|pattern|contract|node|need|tool)$"
+    )
     target_id: str = Field(min_length=1, max_length=300)
     author: str = Field(default="anonymous", max_length=80)
     body: str = Field(min_length=1, max_length=4000)
@@ -55,6 +57,7 @@ async def overview(pool: asyncpg.Pool, limit: int) -> dict[str, Any]:
             ),
             "queries": records(await connection.fetch(load_sql("overview_queries"))),
             "networks": records(await connection.fetch(load_sql("overview_networks"))),
+            "needs": records(await connection.fetch(load_sql("overview_needs"))),
             "top_contracts": records(
                 await connection.fetch(load_sql("overview_top_contracts"))
             ),

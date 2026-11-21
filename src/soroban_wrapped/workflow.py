@@ -163,10 +163,34 @@ class Accept(BaseModel):
     min_topic_repos: int = 15
 
 
+class NeedWeights(BaseModel):
+    pain: float = 1.2
+    owners: float = 0.5
+    relevance: float = 0.6
+    official: float = 0.7
+    custom: float = 0.7
+    recency: float = 0.4
+    engagement: float = 0.5
+    covered: float = -0.6
+
+
+class Needs(BaseModel):
+    min_relevance: float = 0.08
+    min_issue_rank: float = 0.3
+    min_doc_rank: float = 0.25
+    evidence_per_kind: int = 40
+    min_ngram_owners: int = 5
+    top_mined: int = 30
+    cue_words: list[str] = Field(default_factory=list)
+    noise_title: str = "^$never^"
+    weights: NeedWeights = Field(default_factory=NeedWeights)
+
+
 class Improve(BaseModel):
     mine: Mine = Field(default_factory=Mine)
     score: Score = Field(default_factory=Score)
     accept: Accept = Field(default_factory=Accept)
+    needs: Needs = Field(default_factory=Needs)
 
 
 class Ecosystem(BaseModel):

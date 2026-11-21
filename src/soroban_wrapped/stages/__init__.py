@@ -9,6 +9,7 @@ from soroban_wrapped.stages import (  # noqa: F401
     lake,
     metadata,
     mine,
+    needs,
     reanalyse,
     report,
     score,

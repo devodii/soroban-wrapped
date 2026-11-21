@@ -143,6 +143,16 @@ improve:
     min_term_lift: 3.0
     min_topic_repos: 6
     soroban_markers: [storage, instance, persistent, temporary, require_auth, require_auth_for_args, extend_ttl, extend_ttl_for_all, publish, events, invoke_contract, symbol_short, panic_with_error, current_contract_address, ledger, deployer, register, update_current_contract_wasm]
+  needs:
+    min_relevance: 0.08
+    min_issue_rank: 0.3
+    min_doc_rank: 0.25
+    evidence_per_kind: 40
+    min_ngram_owners: 4
+    top_mined: 30
+    cue_words: [missing, "no way", cannot, "can't", unable, "doesn't work", "does not work", "not working", broken, fails, failing, workaround, "how to", "how do", "would be nice", wish, lack, lacking, limitation, painful, annoying, confusing, unclear, outdated, "hard to", difficult, impossible, "not possible", "not supported", unsupported, "no support", "is there a way", "feature request", "can we", "any plans", "should support", "need a way", "need to be able", "wasting", tedious, boilerplate, manual, manually, "every time", repetitive]
+    noise_title: '^(feat|chore|docs|ci|refactor|test|build|style|perf|release|bump|merge)(\(.*\))?!?:'
+    weights: {pain: 1.2, owners: 0.5, relevance: 0.6, official: 0.7, custom: 0.7, recency: 0.4, engagement: 0.5, covered: -0.6}
   score:
     recent_days: 90
     weights:
@@ -186,5 +196,6 @@ stages:
   - {id: mine, uses: catalog.mine, needs: [clone, history, chain]}
   - {id: reanalyse, uses: catalog.reanalyse, needs: [clone]}
   - {id: score, uses: catalog.score, needs: [mine]}
+  - {id: needs, uses: catalog.needs, needs: [ecosystem, history, score]}
   - {id: graph, uses: graph.build, needs: [score]}
-  - {id: report, uses: report.write, needs: [graph]}
+  - {id: report, uses: report.write, needs: [graph, needs]}
