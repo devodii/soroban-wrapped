@@ -5,9 +5,10 @@ SELECT
     count(*) AS occurrences
 FROM type_defs AS t
 INNER JOIN repos AS r ON t.repo = r.full_name
+INNER JOIN source_files AS s ON t.repo = s.repo AND t.path = s.path
 CROSS JOIN LATERAL jsonb_array_elements(t.members) AS member
 WHERE
-    NOT t.is_test
+    NOT s.is_test
     AND NOT r.is_fork
     AND t.kind = 'enum'
     AND (
