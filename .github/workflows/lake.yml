@@ -14,13 +14,13 @@ on:
         default: "2026-01-07"
       chunk_days:
         description: days per parallel job
-        default: "1"
+        default: "7"
       limit_ledgers:
         description: read only this many ledgers per day, for a speed probe (0 means all)
         default: "0"
       threads:
         description: duckdb threads per job
-        default: "32"
+        default: "64"
 
 jobs:
   plan:
@@ -74,4 +74,4 @@ jobs:
         with:
           name: lake-${{ inputs.network }}-${{ matrix.chunk.from }}
           path: out/lake/*.parquet
-          retention-days: 14
+          retention-days: 3

@@ -33,8 +33,12 @@ Decisions made while building, with the reason, so they can be challenged. Newes
 - **Closures built:** `Cargo.lock` and extra Stellar crate searches, crates.io dependents, an **owner sweep** that lists every repo of each confirmed owner through REST (not the search limit), a flag on search slices that hit the cap, and a capture-recapture coverage estimate on the Overview tab (shown only once text and content searches overlap on 30+ repos).
 - **Still open:** non-GitHub hosts, and any repo no search or owner link reaches.
 
-## On-chain history plan and budget
-- Probe one small slice first (about 3 to 5 Actions minutes), then decide. Estimated full cost range is 0 to about 60 USD depending on runner speed (900 to 9,200 minutes against 2,000 free). Set Actions spending limit to 0 so nothing can charge. Alternatives: AWS spot VM (1 to 4 USD) or make the repo public (free unlimited minutes).
+## On-chain history plan and budget (measured on a real runner)
+- **Speed:** 48.8 ledgers/s per runner at 32 threads and 64 ledgers/s at 64 threads (a 2-core runner is CPU-bound). This machine does 1.7 ledgers/s, so a runner is about 30 to 40 times faster.
+- **Size of the job:** mainnet 2026 is about 5.6M ledgers. At 64 ledgers/s that is about 87,500 runner-seconds, so **about 1,450 Actions minutes**, plus about 20 for job setup. Up to 20 jobs run at once, so the wall time is roughly 1.5 to 2.5 hours.
+- **Budget:** the free plan gives 2,000 private Linux minutes a month. CI has used roughly 60 to 70 so far this month. The full run fits but with thin headroom. Safest is two batches: now and after the monthly reset on 1 December. Set Actions spending limit to 0 so nothing can ever bill. If it did bill, the worst case is about 10 to 15 USD (about 0.008 per minute).
+- **Artifacts:** each day's summary is small (60 to 130 KB per 400 to 800 ledgers, roughly 0.5 to 2 MB per full day). A year could approach the free 500 MB artifact storage, so run in batches of 2 to 3 months, import, then delete the artifacts.
+- **Not launched in full.** It needs your go-ahead. The command is `gh workflow run lake.yml -f network=mainnet -f start=2026-01-01 -f end=2026-02-28` then `gh run download` then `soroban-wrapped lake-import`.
 
 ## Open for the owner
 - Approve the full-year on-chain run on GitHub Actions (or choose an AWS spot VM or BigQuery instead).
