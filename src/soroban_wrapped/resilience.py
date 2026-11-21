@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
+
 import httpx
 
 from soroban_wrapped.github.client import GithubUnavailable
