@@ -63,6 +63,15 @@ Decisions made while building, with the reason, so they can be challenged. Newes
 - **Seeds are hypotheses, like the proposals.** 41 seed themes and 38 tools live in YAML. Mined themes come from the data.
 - **Store everything useful.** Every matched evidence row keeps its relevance, snippet and link so the data can be reused for other purposes later.
 
+## How tooling needs are scored (calibrated tonight)
+- **Weighted search index.** Titles and file paths are weighted far above body text in the full-text index, so a match in a title counts as strong evidence and a body-only mention as weak.
+- **Thresholds on relevance.** Issues need a rank of 0.3 or more and documents 0.25 or more to count (both in the YAML). Measured on a broad query: 1,087 issues matched somewhere, 412 at 0.2 or above, 271 at 0.3 or above.
+- **Pain evidence is separate from topical evidence.** A topical match only says people work on the area. Pain means the issue also uses real problem or request language (missing, no way, cannot, workaround, how to, boilerplate, manually…). Generic words like add, support, feature and implement were removed from that list after they matched nearly everything, and conventional-commit titles (`feat:`, `chore:`) are excluded because many repos use them as bounty tasks.
+- **Each signal is a percentile among all needs**, then weighted (pain 1.2, official repos 0.7, custom implementations 0.7, relevance 0.6, owners 0.5, engagement 0.5, recency 0.4, covered by existing tools minus 0.6). Percentiles spread the scale and recalibrate themselves as the data grows. Weights are in the YAML.
+- **Specificity penalty.** A query that matches more than 20% of all issues is generic and its score is scaled down.
+- **Known limit:** the corpus is hackathon-heavy, so product-domain themes (NFT, gaming, RWA) rank high on pain volume. That is demand for those apps, not necessarily for tooling. Treat the score as a ranked shortlist, and read the evidence before drafting an RFP.
+- **Reactions are now stored on issues** as an engagement signal. Existing issues will get them when history is re-run with `--force`.
+
 ## Mistake and fix: ledger days
 - I assumed a ledger every 5 seconds (17,280 a day). Mainnet averages about 5.8 seconds (about 15,000 a day), so the importer rejected every day as partial and then deleted the artifacts of batch 1. Fixed: the partial-day threshold is 10,000 ledgers, and artifacts are only deleted when days were actually imported. Batch 1 was re-run.
 
