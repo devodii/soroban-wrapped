@@ -10,6 +10,7 @@
 \i tables/source_files.sql
 \i tables/contract_calls.sql
 \i tables/contract_creations.sql
+\i tables/contract_edges.sql
 \i tables/crates.sql
 \i tables/crate_dependencies.sql
 \i tables/wasm_modules.sql
@@ -18,6 +19,7 @@
 \i tables/graph_nodes.sql
 \i tables/graph_edges.sql
 \i tables/issues.sql
+\i tables/network_days.sql
 \i tables/pattern_matches.sql
 \i tables/patterns.sql
 \i tables/proposals.sql
@@ -39,6 +41,7 @@
 \i indexes/contract_activity_contract.sql
 \i indexes/contract_calls_callee.sql
 \i indexes/contract_creations_wasm.sql
+\i indexes/contract_edges_callee.sql
 \i indexes/crate_dependencies_name.sql
 \i indexes/deployed_contracts_wasm.sql
 \i indexes/functions_body_hash.sql
