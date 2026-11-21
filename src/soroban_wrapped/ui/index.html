@@ -56,7 +56,7 @@
 <aside id="drawer"></aside>
 <script src="https://unpkg.com/3d-force-graph@1.73.4/dist/3d-force-graph.min.js"></script>
 <script>
-const TABS = ['overview','repos','patterns','proposals','candidates','discovery','graph'];
+const TABS = ['overview','repos','patterns','proposals','candidates','chain','discovery','graph'];
 const state = { tab: location.hash.slice(1) || 'overview', data: null, sort: {}, filter: '' };
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -120,6 +120,17 @@ const VIEWS = {
   },
   candidates(d) {
     return `<p class="muted">What the miner found in the corpus that the catalog does not cover yet.</p>` + search('filter candidates…') + table('candidates', [{key:'kind',label:'kind'},{key:'title',label:'candidate'},{key:'repos',label:'repos',num:1},{key:'occurrences',label:'occurrences',num:1},{key:'score',label:'score',num:1,render:(r)=>Number(r.score).toFixed(1)},{key:'status',label:'status'}], d.candidates);
+  },
+  chain(d) {
+    const short = (v) => v ? `<code>${esc(v.slice(0, 6))}…${esc(v.slice(-4))}</code>` : '';
+    const net = (r) => `<span class="badge ${r.network}">${esc(r.network)}</span>`;
+    return `<p class="muted">Summarised from the public ledger archive (full days only). Busiest contracts first.</p><h3>Busiest contracts</h3>` + table('contracts', [
+      {key:'network',label:'network',render:net}, {key:'contract_id',label:'contract',render:(r)=>`<a target="_blank" href="https://stellar.expert/explorer/${r.network==='mainnet'?'public':'testnet'}/contract/${esc(r.contract_id)}">${short(r.contract_id)}</a>`},
+      {key:'invocations',label:'calls',num:1,render:(r)=>fmt(r.invocations)}, {key:'successful',label:'succeeded',num:1,render:(r)=>fmt(r.successful)},
+      {key:'peak_daily_callers',label:'peak daily callers',num:1,render:(r)=>fmt(r.peak_daily_callers)}, {key:'active_days',label:'active days',num:1},
+      {key:'first_day',label:'first seen',render:(r)=>day(r.first_day)}, {key:'repos',label:'repo that references it'}], d.top_contracts)
+      + `<h3>Who calls whom</h3>` + table('edges', [{key:'network',label:'network',render:net},{key:'caller',label:'caller',render:(r)=>short(r.caller)},{key:'callee',label:'callee',render:(r)=>short(r.callee)},{key:'calls',label:'calls',num:1,render:(r)=>fmt(r.calls)},{key:'active_days',label:'days',num:1}], d.top_edges)
+      + `<h3>Network totals per day</h3>` + table('netdays', [{key:'day',label:'day',render:(r)=>day(r.day)},{key:'network',label:'network',render:net},{key:'ledgers',label:'ledgers',num:1,render:(r)=>fmt(r.ledgers)},{key:'transactions',label:'transactions',num:1,render:(r)=>fmt(r.transactions)},{key:'failed_transactions',label:'failed',num:1,render:(r)=>fmt(r.failed_transactions)},{key:'contract_calls',label:'contract calls',num:1,render:(r)=>fmt(r.contract_calls)},{key:'contracts_called',label:'distinct contracts called',num:1,render:(r)=>fmt(r.contracts_called)}], d.network_days);
   },
   discovery(d) {
     return `<p class="muted">How well each search query finds soroban repos, so the workflow can retire the weak ones.</p>` + table('queries', [{key:'kind',label:'kind'},{key:'query',label:'query',render:(r)=>`<code>${esc(r.query)}</code>`},{key:'hits',label:'hits',num:1},{key:'new_repos',label:'new',num:1},{key:'soroban_repos',label:'soroban',num:1},{key:'seconds',label:'sec',num:1,render:(r)=>Number(r.seconds).toFixed(0)}], d.queries);

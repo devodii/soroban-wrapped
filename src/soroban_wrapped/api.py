@@ -54,6 +54,15 @@ async def overview(pool: asyncpg.Pool, limit: int) -> dict[str, Any]:
             ),
             "queries": records(await connection.fetch(load_sql("overview_queries"))),
             "networks": records(await connection.fetch(load_sql("overview_networks"))),
+            "top_contracts": records(
+                await connection.fetch(load_sql("overview_top_contracts"))
+            ),
+            "top_edges": records(
+                await connection.fetch(load_sql("overview_top_edges"))
+            ),
+            "network_days": records(
+                await connection.fetch(load_sql("overview_network_days"))
+            ),
             "recall": recall(
                 dict(await connection.fetchrow(load_sql("overview_recall")))
             ),
