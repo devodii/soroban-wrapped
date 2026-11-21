@@ -12,6 +12,7 @@ from soroban_wrapped.sql_loader import load_sql
 log = logging.getLogger("soroban_wrapped")
 
 BATCH = 5000
+MIN_FULL_DAY = 16000
 
 
 def contract_id(value: str | None) -> str | None:
@@ -67,6 +68,13 @@ async def import_day(pool, network: str, directory: Path, day: date) -> tuple[in
         "SELECT ledgers, transactions, failed_transactions, operations, "
         "contract_calls, contracts_called FROM read_parquet('{file}')",
     )
+    if not totals or totals[0][0] < MIN_FULL_DAY:
+        log.warning(
+            "%s has only %s ledgers, a partial day, not imported",
+            day,
+            totals[0][0] if totals else 0,
+        )
+        return 0, 0
     async with pool.acquire() as connection, connection.transaction():
         for offset in range(0, len(activity_rows), BATCH):
             await connection.executemany(
@@ -84,21 +92,23 @@ async def import_day(pool, network: str, directory: Path, day: date) -> tuple[in
     return len(activity_rows), len(edge_rows)
 
 
+async def import_directory(pool, directory: Path, network: str) -> int:
+    days = sorted(
+        {
+            date.fromisoformat(f.stem.removeprefix("network-"))
+            for f in directory.rglob("network-*.parquet")
+        }
+    )
+    for day in days:
+        folder = next(directory.rglob(f"network-{day}.parquet")).parent
+        contracts, edges = await import_day(pool, network, folder, day)
+        log.info("%s: %s contract-days, %s call edges imported", day, contracts, edges)
+    return len(days)
+
+
 async def run_import(directory: str, network: str) -> None:
     pool = await open_pool()
     try:
-        path = Path(directory)
-        days = sorted(
-            {
-                date.fromisoformat(f.stem.removeprefix("network-"))
-                for f in path.rglob("network-*.parquet")
-            }
-        )
-        for day in days:
-            folder = next(path.rglob(f"network-{day}.parquet")).parent
-            contracts, edges = await import_day(pool, network, folder, day)
-            log.info(
-                "%s: %s contract-days, %s call edges imported", day, contracts, edges
-            )
+        await import_directory(pool, Path(directory), network)
     finally:
         await pool.close()

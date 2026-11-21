@@ -9,7 +9,7 @@ from soroban_wrapped.sql_loader import load_sql
 log = logging.getLogger("soroban_wrapped")
 
 FLOW = ["metadata", "clone", "history"]
-PERIODIC = ["sweep", "chain", "mine", "score", "graph"]
+PERIODIC = ["sweep", "chain", "lake", "mine", "score", "graph"]
 PERIOD = 1200
 IDLE_PAUSE = 60
 MAX_BACKOFF = 600

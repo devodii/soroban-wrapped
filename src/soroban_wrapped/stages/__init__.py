@@ -5,6 +5,7 @@ from soroban_wrapped.stages import (  # noqa: F401
     extract,
     graph,
     history,
+    lake,
     metadata,
     mine,
     score,
