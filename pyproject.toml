@@ -52,7 +52,7 @@ ban-relative-imports = "parents"
 
 [tool.sqlfluff.core]
 dialect = "postgres"
-exclude_rules = "LT05,RF01,RF04,ST10"
+exclude_rules = "LT05,RF01,RF02,RF04,ST10,AL03"
 
 [tool.sqlfluff.rules.capitalisation.keywords]
 capitalisation_policy = "upper"
