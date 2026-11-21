@@ -21,6 +21,7 @@ WITH base AS (
         AND NOT r.is_fork
         AND f.shape_nodes >= $1
         AND f.loc <= $2
+        AND (f.calls && $5::text[] OR f.macros && $5::text[] OR f.params::text ~ 'Env')
 )
 
 SELECT

@@ -140,6 +140,7 @@ improve:
     min_term_owners: 8
     min_term_lift: 3.0
     min_topic_repos: 6
+    soroban_markers: [storage, instance, persistent, temporary, require_auth, require_auth_for_args, extend_ttl, extend_ttl_for_all, publish, events, invoke_contract, symbol_short, panic_with_error, current_contract_address, ledger, deployer, register, update_current_contract_wasm]
   score:
     recent_days: 90
     weights:

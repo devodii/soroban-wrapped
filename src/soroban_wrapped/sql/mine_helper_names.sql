@@ -19,6 +19,7 @@ WHERE
     AND f.name !~ '^(new|default|from|fmt|eq|hash|clone|drop|test|main)$'
     AND f.is_contract_fn = FALSE
     AND length(f.name) > 3
+    AND (f.calls && $3::text[] OR f.macros && $3::text[] OR f.params::text ~ 'Env')
 GROUP BY lower(f.name)
 HAVING count(DISTINCT r.owner) >= $1
 ORDER BY count(DISTINCT r.owner) DESC, count(*) DESC

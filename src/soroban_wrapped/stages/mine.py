@@ -154,6 +154,7 @@ async def mine_shapes(context: Context, totals_: tuple[int, int]) -> int:
         cfg.max_function_loc,
         cfg.min_owners,
         cfg.top_per_kind * 3,
+        cfg.soroban_markers,
     )
     count = 0
     for row in rows:
@@ -197,7 +198,10 @@ async def mine_shapes(context: Context, totals_: tuple[int, int]) -> int:
 async def mine_names(context: Context, totals_: tuple[int, int]) -> int:
     cfg = context.workflow.improve.mine
     rows = await context.pool.fetch(
-        load_sql("mine_helper_names"), cfg.min_owners, cfg.top_per_kind
+        load_sql("mine_helper_names"),
+        cfg.min_owners,
+        cfg.top_per_kind,
+        cfg.soroban_markers,
     )
     for row in rows:
         members = await member_pairs(context, "members_name", row["name"])
@@ -235,7 +239,7 @@ async def mine_names(context: Context, totals_: tuple[int, int]) -> int:
 async def mine_idioms(context: Context, totals_: tuple[int, int]) -> int:
     cfg = context.workflow.improve.mine
     rows = await context.pool.fetch(
-        load_sql("mine_idioms"), cfg.min_owners, cfg.top_per_kind
+        load_sql("mine_idioms"), cfg.min_owners, cfg.top_per_kind, cfg.soroban_markers
     )
     for row in rows:
         members = await member_pairs(context, "members_idiom", row["signature"])
@@ -418,6 +422,17 @@ async def promote_patterns(context: Context) -> int:
         accept.min_owners,
         accept.max_mined_patterns,
     )
+    keep = [f"mined.fn.{row['signature']}" for row in rows]
+    await context.pool.execute(
+        "UPDATE patterns SET status = 'retired' "
+        "WHERE origin = 'mined' AND status = 'active' AND id <> ALL($1::text[])",
+        keep,
+    )
+    await context.pool.execute(
+        "UPDATE patterns SET status = 'active' "
+        "WHERE origin = 'mined' AND status = 'retired' AND id = ANY($1::text[])",
+        keep,
+    )
     for row in rows:
         name = row["signature"]
         matcher = {
@@ -465,6 +480,7 @@ async def mine_queries(context: Context) -> int:
 
 @stage("catalog.mine")
 async def mine(context: Context, _: Stage) -> None:
+    started = await context.pool.fetchval("SELECT now()")
     totals_ = await totals(context)
     detail = {
         "shapes": await mine_shapes(context, totals_),
@@ -477,6 +493,18 @@ async def mine(context: Context, _: Stage) -> None:
         "queries": await mine_queries(context),
         "promoted_patterns": await promote_patterns(context),
     }
+    pruned = await context.pool.fetchval(
+        "WITH gone AS (DELETE FROM proposals WHERE origin = 'mined' "
+        "AND scored_at < $1 RETURNING 1) SELECT count(*) FROM gone",
+        started,
+    )
+    await context.pool.execute(
+        "DELETE FROM catalog_candidates WHERE kind IN "
+        "('shape', 'helper', 'idiom', 'macro', 'vocabulary', 'health') "
+        "AND last_seen_at < $1",
+        started,
+    )
+    detail["pruned_stale_proposals"] = pruned
     context.detail.update(detail)
     context.items = sum(detail.values())
     log.info("mined %s", detail)

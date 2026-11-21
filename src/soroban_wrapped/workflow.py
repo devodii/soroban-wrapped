@@ -133,6 +133,7 @@ class Mine(BaseModel):
     min_term_owners: int = 8
     min_term_lift: float = 3.0
     min_topic_repos: int = 6
+    soroban_markers: list[str] = Field(default_factory=list)
 
 
 class Weights(BaseModel):

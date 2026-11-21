@@ -19,6 +19,7 @@ WITH base AS (
         AND NOT r.is_fork
         AND f.loc <= 40
         AND cardinality(f.calls) >= 3
+        AND (f.calls && $3::text[] OR f.macros && $3::text[])
 )
 
 SELECT
