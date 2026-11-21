@@ -3,7 +3,7 @@ from soroban_wrapped.extract.git import login_of, parse_log, target_path
 RAW = (
     "\x1eabc123\x1fAda\x1f12+ada@users.noreply.github.com\x1f2026-03-01T10:00:00+00:00"
     "\x1fp1 p2\x1ffix: archived entries\n\nbody\x1f\n"
-    "3\t1\tsrc/lib.rs\n-\t-\tassets/logo.png\n2\t0\tsrc/{old => new}/mod.rs\n"
+    "M\tsrc/lib.rs\nA\tassets/logo.png\nR100\tsrc/old/mod.rs\tsrc/new/mod.rs\n"
 )
 
 
@@ -12,7 +12,7 @@ def test_a_log_record_becomes_a_commit_with_its_file_stats():
 
     assert commit.sha == "abc123" and commit.parents == 2
     assert commit.author_login == "ada"
-    assert (commit.additions, commit.deletions) == (5, 1)
+    assert [f.status for f in commit.files] == ["M", "A", "R"]
     assert commit.files[2].path == "src/new/mod.rs"
     assert commit.files[2].previous_path == "src/old/mod.rs"
 

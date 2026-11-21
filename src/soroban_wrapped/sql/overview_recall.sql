@@ -3,10 +3,10 @@ WITH found AS (
         bool_or(via LIKE 'search:%') AS by_text,
         bool_or(via LIKE 'code:%') AS by_content,
         bool_or(via LIKE 'crates.io:%') AS by_crates
-    FROM repos AS r
-    CROSS JOIN LATERAL unnest(r.discovered_via) AS via
-    WHERE r.is_soroban
-    GROUP BY r.full_name
+    FROM repos
+    CROSS JOIN LATERAL unnest(discovered_via) AS via
+    WHERE is_soroban
+    GROUP BY full_name
 )
 
 SELECT
