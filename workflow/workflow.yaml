@@ -130,6 +130,31 @@ chain:
     batch_keys: 200
     concurrency: 4
 
+improve:
+  mine:
+    min_owners: 5
+    min_function_nodes: 14
+    max_function_loc: 70
+    top_per_kind: 40
+    min_macro_owners: 3
+    min_term_owners: 8
+    min_term_lift: 3.0
+    min_topic_repos: 6
+  score:
+    recent_days: 90
+    weights:
+      owners: 1.0
+      independence: 0.6
+      mainnet: 0.8
+      recency: 0.5
+      fixes: 0.8
+      loc: 0.4
+      covered: -0.7
+  accept:
+    policy: suggest
+    min_score: 45
+    min_owners: 8
+
 stages:
   - {id: catalog, uses: catalog.sync}
   - {id: discover, uses: github.discover, needs: [catalog]}
@@ -138,4 +163,6 @@ stages:
   - {id: history, uses: github.history, needs: [clone]}
   - {id: chain, uses: chain.state, needs: [clone]}
   - {id: lake, uses: chain.lake, needs: [chain]}
-  - {id: graph, uses: graph.build, needs: [clone, history, chain]}
+  - {id: mine, uses: catalog.mine, needs: [clone, history, chain]}
+  - {id: score, uses: catalog.score, needs: [mine]}
+  - {id: graph, uses: graph.build, needs: [score]}

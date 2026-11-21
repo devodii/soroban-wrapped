@@ -39,8 +39,14 @@ async def sync_catalog(context: Context, _: Stage) -> None:
                 for p in catalog.proposals
             ],
         )
-        await connection.execute("DELETE FROM proposal_patterns")
-        await connection.execute("DELETE FROM proposal_bug_classes")
+        await connection.execute(
+            "DELETE FROM proposal_patterns WHERE proposal IN "
+            "(SELECT id FROM proposals WHERE origin = 'seed')"
+        )
+        await connection.execute(
+            "DELETE FROM proposal_bug_classes WHERE proposal IN "
+            "(SELECT id FROM proposals WHERE origin = 'seed')"
+        )
         await connection.executemany(
             load_sql("catalog_link_pattern"),
             [
@@ -54,11 +60,11 @@ async def sync_catalog(context: Context, _: Stage) -> None:
             [(p.id, bug) for p in catalog.proposals for bug in p.bug_classes],
         )
         await connection.execute(
-            "DELETE FROM proposals WHERE id <> ALL($1::text[])",
+            "DELETE FROM proposals WHERE origin = 'seed' AND id <> ALL($1::text[])",
             [p.id for p in catalog.proposals],
         )
         await connection.execute(
-            "DELETE FROM patterns WHERE id <> ALL($1::text[])",
+            "DELETE FROM patterns WHERE origin = 'seed' AND id <> ALL($1::text[])",
             [p.id for p in catalog.patterns],
         )
         await connection.execute(

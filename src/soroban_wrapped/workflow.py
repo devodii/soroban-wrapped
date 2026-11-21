@@ -124,6 +124,44 @@ class Chain(BaseModel):
         return getattr(self, name)
 
 
+class Mine(BaseModel):
+    min_owners: int = 5
+    min_function_nodes: int = 14
+    max_function_loc: int = 70
+    top_per_kind: int = 40
+    min_macro_owners: int = 3
+    min_term_owners: int = 8
+    min_term_lift: float = 3.0
+    min_topic_repos: int = 6
+
+
+class Weights(BaseModel):
+    owners: float = 1.0
+    independence: float = 0.6
+    mainnet: float = 0.8
+    recency: float = 0.5
+    fixes: float = 0.8
+    loc: float = 0.4
+    covered: float = -0.7
+
+
+class Score(BaseModel):
+    recent_days: int = 90
+    weights: Weights = Field(default_factory=Weights)
+
+
+class Accept(BaseModel):
+    policy: Literal["suggest", "auto"] = "suggest"
+    min_score: float = 45
+    min_owners: int = 8
+
+
+class Improve(BaseModel):
+    mine: Mine = Field(default_factory=Mine)
+    score: Score = Field(default_factory=Score)
+    accept: Accept = Field(default_factory=Accept)
+
+
 class Stage(BaseModel):
     id: str
     uses: str
@@ -143,6 +181,7 @@ class Workflow(BaseModel):
     history: History
     networks_signals: dict[Network, list[NetworkSignal]]
     chain: Chain
+    improve: Improve = Field(default_factory=Improve)
     stages: list[Stage]
     root: Path = Path(".")
 
