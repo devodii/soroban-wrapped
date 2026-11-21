@@ -46,6 +46,16 @@ Decisions made while building, with the reason, so they can be challenged. Newes
 - **Contract links are ranked by evidence, not treated as equal.** The view `repo_contract_links` ranks: verified (the wasm's own `source_repo` equals the repo), deployment (id found in a deploy or config file), code, docs, fixture (tests and examples). A README mention is not proof of ownership. Today: 18 deployment, 20 code, 185 docs, 4 fixture.
 - **Disk watch.** If the Docker VM disk fills again, only our own cache and volumes are safe to clear. Anything else needs the owner.
 
+## The self-improving loop (built tonight)
+- **Mined patterns become real patterns.** A helper function that 8 or more different owners wrote by hand is promoted into the `patterns` table (`origin = mined`, name-based matcher, up to 40). Extraction now uses seeds plus mined patterns.
+- **New patterns apply retroactively.** Source text is stored, so the `reanalyse` stage re-matches every stored file whenever the pattern list changes (tracked by a hash on each file). No re-download needed.
+- **Mined topics become search queries.** Topics carried by 15 or more confirmed Soroban repos that no query uses are auto-accepted, and discovery re-runs hourly with them. 16 were accepted on the first pass.
+- **The catalog still suggests rather than rewrites.** Proposals stay `proposed` or `strong`, never silently `accepted`, because the owner should decide what counts as a proposal (`accept.policy: suggest`).
+- **Dead or noisy patterns are flagged** as health candidates once there are at least 100 Soroban repos to judge against.
+- **Fix evidence was tightened.** A fix commit only counts if it touches Rust and its message is not a typo, CI, lint, format, docs, changelog or version-bump change. Its weight dropped from 0.8 to 0.4, and up to 4 real example commits are stored per proposal so a human can judge them.
+- **A report is written every 20 minutes** to `out/report.md` (served at `/report`): counts with changes since the last report, stage health, failed units, top proposals, what the miner found, disk and database size.
+- **Disk guard:** extraction pauses below 3 GB free instead of crashing.
+
 ## Open for the owner
 - Approve the full-year on-chain run on GitHub Actions (or choose an AWS spot VM or BigQuery instead).
 - Add the third GitHub token to `.env`.
