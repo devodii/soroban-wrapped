@@ -51,6 +51,10 @@ class Clone(BaseModel):
     max_repo_kb: int
     concurrency: int
     keep: bool = False
+    require_language: str | None = None
+    max_rust_files: int = 4000
+    max_signal_files: int = 1500
+    signal_suffixes: list[str]
     rust_suffixes: list[str]
     manifests: list[str]
     max_file_bytes: int

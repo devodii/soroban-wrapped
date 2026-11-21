@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soroban Wrapped</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#262d36; --text:#e6edf3; --muted:#8b949e; --brand:#7c9cff; --good:#3fb950; --warn:#d29922; --bad:#f85149; }
+  @media (prefers-color-scheme: light) { :root { --bg:#f6f8fa; --panel:#fff; --line:#d8dee4; --text:#1f2328; --muted:#656d76; --brand:#3b5bdb; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+  header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; padding:14px 20px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:5; }
+  h1 { font-size:16px; margin:0 12px 0 0; }
+  nav { display:flex; gap:4px; flex-wrap:wrap; }
+  nav button { background:none; border:0; color:var(--muted); padding:6px 10px; border-radius:6px; cursor:pointer; font:inherit; }
+  nav button.on { background:var(--panel); color:var(--text); }
+  .spacer { flex:1; }
+  .pill { font-size:12px; color:var(--muted); }
+  main { padding:20px; max-width:1500px; margin:0 auto; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-bottom:20px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .card b { display:block; font-size:22px; font-variant-numeric:tabular-nums; }
+  .card span { color:var(--muted); font-size:12px; }
+  .bar { display:flex; gap:8px; margin-bottom:10px; align-items:center; }
+  input[type=search], input[type=text], textarea { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:8px 10px; color:var(--text); font:inherit; }
+  input[type=search] { width:320px; max-width:100%; }
+  table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:500; cursor:pointer; user-select:none; white-space:nowrap; position:sticky; top:0; background:var(--panel); }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  tr:hover td { background:color-mix(in srgb, var(--brand) 6%, transparent); }
+  tr.click { cursor:pointer; }
+  .badge { display:inline-block; padding:1px 8px; border-radius:99px; font-size:12px; border:1px solid var(--line); margin-right:4px; }
+  .mainnet { color:var(--good); border-color:var(--good); } .testnet { color:var(--warn); border-color:var(--warn); }
+  .ok { color:var(--good); } .bad { color:var(--bad); } .muted { color:var(--muted); }
+  .scroll { max-height:70vh; overflow:auto; border-radius:10px; }
+  #graph { height:72vh; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  aside { position:fixed; top:0; right:0; bottom:0; width:min(460px,100%); background:var(--panel); border-left:1px solid var(--line); padding:18px; overflow:auto; transform:translateX(100%); transition:transform .18s; z-index:10; }
+  aside.open { transform:none; }
+  .comment { border-top:1px solid var(--line); padding:8px 0; }
+  .empty { padding:30px; text-align:center; color:var(--muted); }
+  textarea { width:100%; min-height:70px; }
+  button.primary { background:var(--brand); color:#fff; border:0; border-radius:8px; padding:7px 14px; cursor:pointer; font:inherit; }
+  code { font-family:ui-monospace,Menlo,monospace; font-size:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Soroban Wrapped</h1>
+  <nav id="tabs"></nav>
+  <span class="spacer"></span>
+  <label class="pill"><input type="checkbox" id="auto" checked> live</label>
+  <span class="pill" id="stamp"></span>
+</header>
+<main id="view"></main>
+<aside id="drawer"></aside>
+<script src="https://unpkg.com/3d-force-graph@1.73.4/dist/3d-force-graph.min.js"></script>
+<script>
+const TABS = ['overview','repos','patterns','proposals','candidates','discovery','graph'];
+const state = { tab: location.hash.slice(1) || 'overview', data: null, sort: {}, filter: '' };
+const $ = (s) => document.querySelector(s);
+const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = (n) => n == null ? '' : Number(n).toLocaleString();
+const day = (v) => v ? String(v).slice(0, 10) : '';
+
+function renderTabs() {
+  $('#tabs').innerHTML = TABS.map((t) => `<button class="${t===state.tab?'on':''}" data-tab="${t}">${t}</button>`).join('');
+}
+function table(id, columns, rows, onClick) {
+  const sort = state.sort[id];
+  let list = rows.filter((r) => !state.filter || JSON.stringify(r).toLowerCase().includes(state.filter));
+  if (sort) list = [...list].sort((a, b) => (a[sort.key] > b[sort.key] ? 1 : a[sort.key] < b[sort.key] ? -1 : 0) * sort.dir);
+  const head = columns.map((c) => `<th class="${c.num?'num':''}" data-sort="${id}:${c.key}">${c.label}${sort?.key===c.key?(sort.dir>0?' ▲':' ▼'):''}</th>`).join('');
+  const body = list.map((r, i) => `<tr class="${onClick?'click':''}" data-row="${id}:${i}">${columns.map((c) => `<td class="${c.num?'num':''}">${c.render?c.render(r):esc(r[c.key])}</td>`).join('')}</tr>`).join('');
+  state.rows = { ...(state.rows||{}), [id]: list };
+  return `<div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${body || `<tr><td class="empty" colspan="${columns.length}">nothing here yet</td></tr>`}</tbody></table></div>`;
+}
+const search = (ph) => `<div class="bar"><input type="search" id="q" placeholder="${ph}" value="${esc(state.filter)}"></div>`;
+const nets = (r) => (r.networks||[]).map((n) => `<span class="badge ${n}">${n}</span>`).join('');
+
+const VIEWS = {
+  overview(d) {
+    const c = d.counts, labels = {repos:'repos found', soroban_repos:'soroban repos', cloned:'cloned', with_metadata:'with metadata', functions:'functions parsed', pattern_matches:'pattern matches', commits:'commits', fix_commits:'fix commits', issues:'issues + PRs', contracts:'contracts on chain', wasm_modules:'wasm modules', open_candidates:'open candidates'};
+    const cards = Object.entries(labels).map(([k, l]) => `<div class="card"><b>${fmt(c[k])}</b><span>${l}</span></div>`).join('');
+    const net = d.networks.map((n) => `<div class="card"><b>${fmt(n.contracts)}</b><span><span class="badge ${n.network}">${n.network}</span>${fmt(n.live)} live</span></div>`).join('');
+    const stages = table('stages', [
+      {key:'stage',label:'stage'}, {key:'status',label:'status',render:(r)=>`<span class="${r.status==='done'?'ok':r.status==='failed'?'bad':'muted'}">${esc(r.status)}</span>`},
+      {key:'items',label:'items',num:1,render:(r)=>fmt(r.items)}, {key:'errors',label:'errors',num:1}, {key:'seconds',label:'seconds',num:1,render:(r)=>Number(r.seconds).toFixed(1)}, {key:'started_at',label:'started',render:(r)=>esc(String(r.started_at).slice(0,19))}], d.stages);
+    return `<div class="cards">${cards}${net}</div><h3>Stage runs</h3>${stages}`;
+  },
+  repos(d) {
+    return search('filter repos…') + table('repos', [
+      {key:'full_name',label:'repo',render:(r)=>`<a href="https://github.com/${esc(r.full_name)}" target="_blank" onclick="event.stopPropagation()">${esc(r.full_name)}</a>`},
+      {key:'is_soroban',label:'soroban',render:(r)=>r.is_soroban?'<span class="ok">yes</span>':'<span class="muted">no</span>'},
+      {key:'networks',label:'network',render:nets}, {key:'stars',label:'★',num:1}, {key:'window_commits',label:'commits',num:1},
+      {key:'rust_loc',label:'rust loc',num:1,render:(r)=>fmt(r.rust_loc)}, {key:'contract_crates',label:'contracts',num:1}, {key:'pattern_hits',label:'pattern hits',num:1},
+      {key:'sources',label:'found by',num:1}, {key:'pushed_at',label:'pushed',render:(r)=>day(r.pushed_at)}, {key:'comments',label:'💬',num:1}], d.repos, true);
+  },
+  patterns(d) {
+    return search('filter patterns…') + table('patterns', [{key:'id',label:'pattern'},{key:'category',label:'category'},{key:'repos',label:'repos',num:1},{key:'occurrences',label:'occurrences',num:1,render:(r)=>fmt(r.occurrences)},{key:'description',label:'what it is'}], d.patterns);
+  },
+  proposals(d) {
+    return `<p class="muted">Seeds from the catalog, scored against the corpus. Mined proposals appear here as the miner runs.</p>` + table('proposals', [
+      {key:'name',label:'proposal'},
+      {key:'verdict',label:'verdict',render:(r)=>`<span class="${r.verdict==='supported'?'ok':'muted'}">${esc(r.verdict)}</span>`},
+      {key:'boilerplate_repos',label:'repos hand-rolling',num:1,render:(r)=>`${fmt(r.boilerplate_repos)} / ${fmt(r.soroban_repos)}`},
+      {key:'boilerplate_occurrences',label:'occurrences',num:1,render:(r)=>fmt(r.boilerplate_occurrences)},
+      {key:'footgun_repos',label:'repos with the footgun',num:1}, {key:'adopted_repos',label:'repos on a library',num:1},
+      {key:'min_repos',label:'needs',render:(r)=>`≥${r.min_repos} repos, ≥${(r.min_share*100).toFixed(0)}%, ≥${r.min_occurrences}`}, {key:'summary',label:'summary'}], d.proposals);
+  },
+  candidates(d) {
+    return `<p class="muted">What the miner found in the corpus that the catalog does not cover yet.</p>` + search('filter candidates…') + table('candidates', [{key:'kind',label:'kind'},{key:'title',label:'candidate'},{key:'repos',label:'repos',num:1},{key:'occurrences',label:'occurrences',num:1},{key:'score',label:'score',num:1,render:(r)=>Number(r.score).toFixed(1)},{key:'status',label:'status'}], d.candidates);
+  },
+  discovery(d) {
+    return `<p class="muted">How well each search query finds soroban repos, so the workflow can retire the weak ones.</p>` + table('queries', [{key:'kind',label:'kind'},{key:'query',label:'query',render:(r)=>`<code>${esc(r.query)}</code>`},{key:'hits',label:'hits',num:1},{key:'new_repos',label:'new',num:1},{key:'soroban_repos',label:'soroban',num:1},{key:'seconds',label:'sec',num:1,render:(r)=>Number(r.seconds).toFixed(0)}], d.queries);
+  },
+  graph() { return `<div id="graph"><div class="empty">loading graph…</div></div>`; },
+};
+
+async function draw() {
+  renderTabs();
+  if (!state.data) return;
+  const keepFocus = document.activeElement?.id === 'q';
+  $('#view').innerHTML = VIEWS[state.tab](state.data);
+  const q = $('#q'); if (q) { q.oninput = (e) => { state.filter = e.target.value.toLowerCase(); draw(); }; if (keepFocus) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } }
+  if (state.tab === 'graph') drawGraph();
+}
+async function load() {
+  try {
+    state.data = await (await fetch('/api/overview')).json();
+    $('#stamp').textContent = 'updated ' + new Date().toLocaleTimeString();
+    if (state.tab !== 'graph' || !state.graphShown) draw();
+  } catch (e) { $('#stamp').textContent = 'offline'; }
+}
+async function drawGraph() {
+  const g = await (await fetch('/api/graph')).json();
+  const el = $('#graph');
+  if (!g.nodes.length) { el.innerHTML = '<div class="empty">The graph is built by the graph stage once repos, calls and chain data are in.</div>'; return; }
+  el.innerHTML = ''; state.graphShown = true;
+  const colors = { repo:'#7c9cff', crate:'#a371f7', pattern:'#3fb950', proposal:'#f0883e', bug_class:'#f85149', contract:'#58a6ff', wasm:'#d29922' };
+  ForceGraph3D()(el).graphData({ nodes: g.nodes.map((n) => ({...n})), links: g.edges.map((e) => ({ source:e.src, target:e.dst, kind:e.kind, value:Number(e.weight) })) })
+    .nodeLabel((n) => `${n.kind}: ${n.label}`).nodeColor((n) => colors[n.kind] || '#8b949e').nodeVal((n) => 1 + Math.log1p((n.props||{}).weight || 1))
+    .linkOpacity(0.3).linkWidth((l) => Math.min(3, Math.log1p(l.value)/2)).backgroundColor('#0d1117').onNodeClick((n) => n.kind === 'repo' && openRepo(n.label));
+}
+async function openRepo(name) {
+  const rows = await (await fetch('/api/comments?target_kind=repo&target_id=' + encodeURIComponent(name))).json();
+  const d = $('#drawer'); d.classList.add('open');
+  const r = (state.data.repos || []).find((x) => x.full_name === name) || {};
+  d.innerHTML = `<button onclick="document.querySelector('#drawer').classList.remove('open')">close</button>
+    <h3><a href="https://github.com/${esc(name)}" target="_blank">${esc(name)}</a></h3>
+    <p>${nets(r)} <span class="muted">${fmt(r.rust_loc)} rust loc · ${fmt(r.pattern_hits)} pattern hits · ★ ${fmt(r.stars)}</span></p>
+    <h4>Notes</h4><div>${rows.map((c) => `<div class="comment"><b>${esc(c.author)}</b> <span class="muted">${esc(String(c.created_at).slice(0,16))}</span><br>${esc(c.body)}</div>`).join('') || '<div class="muted">no notes yet</div>'}</div>
+    <p><input type="text" id="who" placeholder="your name" value="${esc(localStorage.getItem('who')||'')}" style="width:100%;margin-bottom:6px"><textarea id="note" placeholder="leave a note on this repo"></textarea></p>
+    <button class="primary" id="send">Add note</button>`;
+  $('#send').onclick = async () => {
+    const author = $('#who').value || 'anonymous'; localStorage.setItem('who', author);
+    const body = $('#note').value.trim(); if (!body) return;
+    await fetch('/api/comments', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ target_kind:'repo', target_id:name, author, body }) });
+    openRepo(name); load();
+  };
+}
+document.addEventListener('click', (e) => {
+  const tab = e.target.closest('[data-tab]'); if (tab) { state.tab = tab.dataset.tab; state.filter = ''; state.graphShown = false; location.hash = state.tab; draw(); return; }
+  const th = e.target.closest('[data-sort]'); if (th) { const [id, key] = th.dataset.sort.split(':'); const cur = state.sort[id]; state.sort[id] = { key, dir: cur?.key === key ? -cur.dir : -1 }; draw(); return; }
+  const row = e.target.closest('tr[data-row]'); if (row) { const [id, i] = row.dataset.row.split(':'); const r = state.rows[id][i]; if (id === 'repos') openRepo(r.full_name); }
+});
+load(); setInterval(() => $('#auto').checked && load(), 10000);
+</script>
+</body>
+</html>

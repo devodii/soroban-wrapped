@@ -52,6 +52,11 @@ def main() -> None:
     run.add_argument("--skip", nargs="+", default=[], help="leave these stages out")
     run.add_argument("--force", action="store_true", help="redo work already stored")
     run.add_argument("--limit", type=int, help="stop each stage after this many items")
+    serve = commands.add_parser("serve", help="serve the live research ui and api")
+    serve.add_argument("--port", type=int, default=8787)
+    serve.add_argument("--host", default="127.0.0.1")
+    export = commands.add_parser("export", help="dump the overview to json and html")
+    export.add_argument("--out", default="out")
     schema = commands.add_parser("schema", help="manage the database schema")
     actions = schema.add_subparsers(dest="action", required=True)
     actions.add_parser("plan", help="write the pending changes to the next migration")
@@ -66,5 +71,18 @@ def main() -> None:
     match args.command:
         case "run":
             raise SystemExit(run_stages(args))
+        case "serve":
+            import uvicorn
+
+            uvicorn.run(
+                "soroban_wrapped.api:app",
+                host=args.host,
+                port=args.port,
+                log_level="warning",
+            )
+        case "export":
+            from soroban_wrapped.export import run_export
+
+            asyncio.run(run_export(args.out))
         case "schema":
             raise SystemExit(run_schema(args))
