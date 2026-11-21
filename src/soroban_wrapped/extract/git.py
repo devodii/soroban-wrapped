@@ -105,7 +105,7 @@ async def clone(
         "--quiet",
         "--no-tags",
         "--single-branch",
-        "--filter=blob:none",
+        "--filter=tree:0",
         "--no-checkout",
     ]
     try:
@@ -214,7 +214,6 @@ async def commit_log(root: Path, since: str, until: str) -> list[CommitRecord]:
             "log",
             f"--since={since}",
             f"--until={until}T23:59:59",
-            "--name-status",
             f"--format={fmt}{FIELD}",
         ],
         root,
@@ -248,7 +247,33 @@ async def rust_patches(root: Path, shas: list[str]) -> dict[str, list[str]]:
             lines = [
                 line
                 for line in body.splitlines()
-                if line[:1] in "+-" and not line.startswith(("+++", "---"))
+                if line.startswith(("+", "-")) and not line.startswith(("+++", "---"))
             ]
             patches[sha.strip()] = lines[:MAX_PATCH_LINES]
     return patches
+
+
+async def commit_files(root: Path, shas: list[str]) -> dict[str, list[FileChange]]:
+    found: dict[str, list[FileChange]] = {}
+    for offset in range(0, len(shas), 40):
+        out = await run(
+            [
+                "show",
+                "--name-status",
+                "--no-renames",
+                f"--format={RECORD}%H",
+                *shas[offset : offset + 40],
+            ],
+            root,
+            timeout=LOG_TIMEOUT,
+        )
+        for record in out.decode(errors="replace").split(RECORD):
+            sha, _, body = record.partition("\n")
+            if not sha.strip():
+                continue
+            found[sha.strip()] = [
+                FileChange(path=cells[-1], status=cells[0][:1])
+                for cells in (line.split("\t") for line in body.splitlines())
+                if len(cells) >= 2 and cells[0][:1].isalpha()
+            ]
+    return found

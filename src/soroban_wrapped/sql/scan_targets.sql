@@ -8,4 +8,4 @@ WHERE
     AND (languages ? $2 OR $2 = '')
     AND size_kb <= $3
     AND ($4::boolean OR scanned_at IS NULL)
-ORDER BY window_commits DESC NULLS LAST, stars DESC
+ORDER BY size_kb ASC, stars DESC

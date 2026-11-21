@@ -47,13 +47,16 @@ async def read_history(
     if history.commits == "fixes":
         commits = [c for c in commits if c.sha in analysis.fix_shas]
     analysis.commits = commits
+    fixes = [c for c in commits if c.sha in analysis.fix_shas][:MAX_PATCHED_COMMITS]
+    if history.commit_files and fixes:
+        files = await git.commit_files(root, [c.sha for c in fixes])
+        for commit in fixes:
+            commit.files = files.get(commit.sha, [])
     rusty = [
         c.sha
-        for c in commits
-        if c.sha in analysis.fix_shas
-        and c.parents == 1
-        and any(f.path.endswith(".rs") for f in c.files)
-    ][:MAX_PATCHED_COMMITS]
+        for c in fixes
+        if c.parents == 1 and any(f.path.endswith(".rs") for f in c.files)
+    ]
     if rusty:
         patches = await git.rust_patches(root, rusty)
         analysis.touches = touches_for(patterns, patches)

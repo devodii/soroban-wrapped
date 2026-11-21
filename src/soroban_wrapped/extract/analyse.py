@@ -230,9 +230,7 @@ def classify_documents(
     return found
 
 
-def classify_message(
-    message: str, workflow: Workflow, bugs: list[BugClass]
-) -> list[str]:
+def classify_message(message: str, bugs: list[BugClass]) -> list[str]:
     return [b.id for b in bugs if compiled(b.keywords).search(message)]
 
 
@@ -243,8 +241,12 @@ def touches_for(
     rules = [(p.id, compiled(p.diff)) for p in patterns if p.diff]
     for sha, lines in patches.items():
         for pattern_id, rule in rules:
-            added = sum(1 for line in lines if line[0] == "+" and rule.search(line))
-            removed = sum(1 for line in lines if line[0] == "-" and rule.search(line))
+            added = sum(
+                1 for line in lines if line.startswith("+") and rule.search(line)
+            )
+            removed = sum(
+                1 for line in lines if line.startswith("-") and rule.search(line)
+            )
             if added or removed:
                 touches.append(
                     CommitTouch(
