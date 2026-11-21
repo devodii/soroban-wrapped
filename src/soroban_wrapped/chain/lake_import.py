@@ -12,7 +12,7 @@ from soroban_wrapped.sql_loader import load_sql
 log = logging.getLogger("soroban_wrapped")
 
 BATCH = 5000
-MIN_FULL_DAY = 16000
+MIN_FULL_DAY = 10000
 
 
 def contract_id(value: str | None) -> str | None:
@@ -28,7 +28,9 @@ def rows(path: Path, query: str) -> list[tuple]:
     return duckdb.connect().execute(query.replace("{file}", str(path))).fetchall()
 
 
-async def import_day(pool, network: str, directory: Path, day: date) -> tuple[int, int]:
+async def import_day(
+    pool, network: str, directory: Path, day: date
+) -> tuple[int, int] | None:
     activity = directory / f"activity-{day}.parquet"
     functions = directory / f"functions-{day}.parquet"
     edges = directory / f"edges-{day}.parquet"
@@ -74,7 +76,7 @@ async def import_day(pool, network: str, directory: Path, day: date) -> tuple[in
             day,
             totals[0][0] if totals else 0,
         )
-        return 0, 0
+        return None
     async with pool.acquire() as connection, connection.transaction():
         for offset in range(0, len(activity_rows), BATCH):
             await connection.executemany(
@@ -92,18 +94,22 @@ async def import_day(pool, network: str, directory: Path, day: date) -> tuple[in
     return len(activity_rows), len(edge_rows)
 
 
-async def import_directory(pool, directory: Path, network: str) -> int:
+async def import_directory(pool, directory: Path, network: str) -> tuple[int, int]:
     days = sorted(
         {
             date.fromisoformat(f.stem.removeprefix("network-"))
             for f in directory.rglob("network-*.parquet")
         }
     )
+    imported = 0
     for day in days:
         folder = next(directory.rglob(f"network-{day}.parquet")).parent
-        contracts, edges = await import_day(pool, network, folder, day)
-        log.info("%s: %s contract-days, %s call edges imported", day, contracts, edges)
-    return len(days)
+        result = await import_day(pool, network, folder, day)
+        if result is None:
+            continue
+        imported += 1
+        log.info("%s: %s contract-days, %s call edges imported", day, *result)
+    return imported, len(days)
 
 
 async def run_import(directory: str, network: str) -> None:

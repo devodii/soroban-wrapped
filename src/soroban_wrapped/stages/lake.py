@@ -84,10 +84,23 @@ async def lake(context: Context, _: Stage) -> None:
             await checkpoints.put(context.pool, JOB, run_id, "failed", {}, str(error))
             context.errors += 1
             continue
-        imported = 0
+        imported = found = 0
         for folder in sorted(target.glob("lake-*")):
             network = folder.name.split("-")[1]
-            imported += await import_directory(context.pool, folder, network)
+            done, seen = await import_directory(context.pool, folder, network)
+            imported += done
+            found += seen
+        if found and not imported:
+            await checkpoints.put(
+                context.pool,
+                JOB,
+                run_id,
+                "failed",
+                {"days": found},
+                "every day looked partial, artifacts kept",
+            )
+            context.errors += 1
+            continue
         await checkpoints.put(context.pool, JOB, run_id, "done", {"days": imported})
         shutil.rmtree(target, ignore_errors=True)
         await drop_artifacts(run_id)
