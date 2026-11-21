@@ -79,6 +79,7 @@ async def follow(
             continue
         if work:
             await safely(context, stage_id, failures)
+            await asyncio.sleep(5)
             continue
         if quiet.is_set():
             return

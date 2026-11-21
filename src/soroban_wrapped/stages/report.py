@@ -14,6 +14,8 @@ COUNTS = {
     "repos found": "SELECT count(*) FROM repos",
     "repos with details": "SELECT count(*) FROM repos WHERE pushed_at IS NOT NULL",
     "repos scanned": "SELECT count(*) FROM repos WHERE scanned_at IS NOT NULL",
+    "in scope but too large to scan": "SELECT count(*) FROM repos WHERE pushed_at >= '2026-01-01' AND languages ? 'Rust' AND size_kb > 750000",
+    "gave up on after retries": "SELECT count(*) FROM checkpoints WHERE job IN ('extract', 'history') AND (status = 'gone' OR (status = 'failed' AND attempts >= 3))",
     "confirmed soroban repos": "SELECT count(*) FROM repos WHERE is_soroban",
     "functions parsed": "SELECT count(*) FROM functions",
     "pattern matches": "SELECT count(*) FROM pattern_matches",

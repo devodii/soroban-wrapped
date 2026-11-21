@@ -8,6 +8,7 @@ from pathlib import Path
 
 import asyncpg
 
+from soroban_wrapped import checkpoints
 from soroban_wrapped.catalog import active_patterns
 from soroban_wrapped.config import get_settings
 from soroban_wrapped.extract import git
@@ -357,9 +358,24 @@ async def extract(context: Context, _: Stage) -> None:
                 soroban += analysis.is_soroban
             except git.GitFailed as error:
                 context.errors += 1
+                gone = (
+                    "not found" in str(error).lower()
+                    or "access denied" in str(error).lower()
+                )
+                await checkpoints.put(
+                    context.pool,
+                    "extract",
+                    name,
+                    "gone" if gone else "failed",
+                    {},
+                    str(error)[:200],
+                )
                 log.warning("skipped %s: %s", name, str(error)[:160])
-            except Exception:
+            except Exception as error:
                 context.errors += 1
+                await checkpoints.put(
+                    context.pool, "extract", name, "failed", {}, str(error)[:200]
+                )
                 log.exception("failed on %s", name)
             finally:
                 if not clone.keep:

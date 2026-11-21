@@ -6,7 +6,10 @@ WHERE
         $1::boolean
         OR NOT EXISTS (
             SELECT 1 FROM checkpoints AS c
-            WHERE c.job = 'history' AND c.key = r.full_name AND c.status = 'done'
+            WHERE
+                c.job = 'history'
+                AND c.key = r.full_name
+                AND (c.status = 'done' OR (c.status = 'failed' AND c.attempts >= 3))
         )
     )
 ORDER BY r.window_commits DESC NULLS LAST
