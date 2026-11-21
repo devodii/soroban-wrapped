@@ -1,7 +1,8 @@
 SELECT r.full_name
 FROM repos AS r
 WHERE
-    r.is_soroban
+    (r.is_soroban OR r.is_stellar)
+    AND NOT r.is_fork
     AND (
         $1::boolean
         OR NOT EXISTS (

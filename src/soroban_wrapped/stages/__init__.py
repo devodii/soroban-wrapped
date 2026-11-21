@@ -10,6 +10,7 @@ from soroban_wrapped.stages import (  # noqa: F401
     metadata,
     mine,
     needs,
+    qa,
     reanalyse,
     report,
     score,

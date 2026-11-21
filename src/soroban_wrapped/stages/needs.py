@@ -100,6 +100,23 @@ async def collect_evidence(context: Context, need) -> dict[str, int]:
                     None,
                 )
             )
+    if query:
+        for row in await pool.fetch(
+            load_sql("need_questions"), query, cfg.evidence_per_kind, cfg.min_issue_rank
+        ):
+            rows.append(
+                (
+                    need["id"],
+                    "question",
+                    row["repo"],
+                    row["ref"],
+                    row["relevance"],
+                    row["title"],
+                    row["snippet"],
+                    row["url"],
+                    row["created_at"],
+                )
+            )
     for pattern in signals.get("paths", []):
         for row in await pool.fetch(load_sql("need_paths"), pattern, 100):
             rows.append(

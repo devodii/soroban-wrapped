@@ -71,6 +71,12 @@ SELECT
     (SELECT count(DISTINCT repo) FROM everyone) AS repos,
     (SELECT count(*) FROM issue_hits) AS issues,
     (
+        SELECT count(*)
+        FROM qa_posts AS p
+        CROSS JOIN q
+        WHERE p.search @@ q.query AND ts_rank_cd(p.search, q.query, 32) >= $6
+    ) AS questions,
+    (
         SELECT count(*) FROM issue_hits
         WHERE pain
     ) AS pain_issues,

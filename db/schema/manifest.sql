@@ -32,6 +32,7 @@
 \i tables/proposal_bug_classes.sql
 \i tables/proposal_patterns.sql
 \i tables/proposal_repos.sql
+\i tables/qa_posts.sql
 \i tables/query_stats.sql
 \i tables/releases.sql
 \i tables/repo_contract_refs.sql
@@ -65,6 +66,7 @@
 \i indexes/pattern_matches_shape_hash.sql
 \i indexes/proposal_repos_repo.sql
 \i indexes/proposals_score.sql
+\i indexes/qa_posts_search.sql
 \i indexes/repo_contract_refs_contract.sql
 \i indexes/repo_documents_kind.sql
 \i indexes/repo_documents_search.sql

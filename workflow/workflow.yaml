@@ -196,6 +196,7 @@ stages:
   - {id: mine, uses: catalog.mine, needs: [clone, history, chain]}
   - {id: reanalyse, uses: catalog.reanalyse, needs: [clone]}
   - {id: score, uses: catalog.score, needs: [mine]}
-  - {id: needs, uses: catalog.needs, needs: [ecosystem, history, score]}
+  - {id: qa, uses: qa.stackexchange, needs: [catalog]}
+  - {id: needs, uses: catalog.needs, needs: [ecosystem, history, score, qa]}
   - {id: graph, uses: graph.build, needs: [score]}
   - {id: report, uses: report.write, needs: [graph, needs]}
