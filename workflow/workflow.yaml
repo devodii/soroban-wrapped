@@ -12,6 +12,8 @@ catalog:
   bug_classes: catalog/bug-classes.yaml
   libraries: catalog/libraries.yaml
   proposals: catalog/proposals.yaml
+  tools: catalog/tools.yaml
+  needs: catalog/needs.yaml
 
 discover:
   crates_io:

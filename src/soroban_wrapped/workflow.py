@@ -30,6 +30,8 @@ class CatalogFiles(BaseModel):
     bug_classes: Path
     libraries: Path
     proposals: Path
+    tools: Path
+    needs: Path
 
 
 class CratesIo(BaseModel):

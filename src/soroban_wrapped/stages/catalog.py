@@ -7,6 +7,50 @@ from soroban_wrapped.workflow import Stage
 log = logging.getLogger("soroban_wrapped")
 
 
+async def sync_needs(context: Context) -> None:
+    catalog = context.catalog
+    async with context.pool.acquire() as connection, connection.transaction():
+        for tool in catalog.tools:
+            await connection.execute(
+                load_sql("upsert_tool"),
+                tool.id,
+                tool.name,
+                tool.category,
+                tool.url,
+                tool.description,
+                tool.ecosystems,
+                tool.packages,
+                tool.keywords,
+                tool.solves,
+            )
+        for need in catalog.needs:
+            await connection.execute(
+                load_sql("upsert_seed_need"),
+                need.id,
+                need.title,
+                need.category,
+                need.summary,
+                need.query,
+                need.signals.model_dump(),
+                {},
+            )
+        await connection.execute(load_sql("clear_seed_need_tools"))
+        for need in catalog.needs:
+            for link in need.tools:
+                await connection.execute(
+                    load_sql("link_need_tool"), need.id, link.id, link.relation, 1.0
+                )
+        await connection.execute(
+            "DELETE FROM tooling_needs WHERE origin = 'seed' AND id <> ALL($1::text[])",
+            [n.id for n in catalog.needs],
+        )
+        await connection.execute(
+            "DELETE FROM tool_catalog WHERE origin = 'seed' AND id <> ALL($1::text[])",
+            [t.id for t in catalog.tools],
+        )
+    log.info("needs: %s themes, %s tools", len(catalog.needs), len(catalog.tools))
+
+
 @stage("catalog.sync")
 async def sync_catalog(context: Context, _: Stage) -> None:
     catalog = context.catalog
@@ -72,6 +116,7 @@ async def sync_catalog(context: Context, _: Stage) -> None:
             [b.id for b in catalog.bug_classes],
         )
     context.items = len(catalog.patterns) + len(catalog.proposals)
+    await sync_needs(context)
     log.info(
         "catalog: %s patterns, %s bug classes, %s proposals",
         len(catalog.patterns),
