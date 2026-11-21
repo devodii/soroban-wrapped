@@ -12,11 +12,45 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: soroban
+          POSTGRES_PASSWORD: soroban
+          POSTGRES_DB: soroban
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U soroban"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://soroban:soroban@localhost:5432/soroban
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run ruff format --check .
+      - run: uv run sqlfluff lint db/schema src/soroban_wrapped/sql
+      - name: A schema change needs a migration file
+        if: github.event_name == 'pull_request'
+        run: |
+          base="origin/${{ github.base_ref }}"
+          changed=$(git diff --name-only "$base...HEAD" -- db/schema ':!db/schema/manifest.sql')
+          added=$(git diff --name-only --diff-filter=A "$base...HEAD" -- db/migrations)
+          if [ -n "$changed" ] && [ -z "$added" ]; then
+            echo "::error::The schema files changed but no migration file was added. Run 'soroban-wrapped schema plan' and commit the file it writes."
+            exit 1
+          fi
+      - name: Build the schema on an empty database
+        run: uv run soroban-wrapped schema apply
+      - name: The schema files and the database agree
+        run: uv run soroban-wrapped schema verify
+      - run: uv run pytest
