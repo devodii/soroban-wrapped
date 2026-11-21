@@ -1,11 +1,17 @@
 INSERT INTO graph_nodes (id, kind, label, props)
 SELECT
-    'proposal:' || id,
+    'proposal:' || top.id,
     'proposal',
-    left(name, 80),
-    jsonb_build_object('score', score, 'origin', origin, 'status', status, 'weight', score)
-FROM proposals
-WHERE id IN (
-    SELECT id FROM proposals
-    ORDER BY score DESC LIMIT $1
-)
+    left(top.name, 80),
+    jsonb_build_object('score', top.score, 'origin', top.origin, 'status', top.status, 'weight', top.score)
+FROM (
+    SELECT
+        p.id,
+        p.name,
+        p.score,
+        p.origin,
+        p.status
+    FROM proposals AS p
+    ORDER BY p.score DESC
+    LIMIT $1
+) AS top
