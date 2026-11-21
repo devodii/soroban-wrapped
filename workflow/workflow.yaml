@@ -1,0 +1,125 @@
+name: soroban-wrapped
+summary: Every public soroban contract repo and what it ships, to find what devs rewrite by hand.
+
+window:
+  start: 2026-01-01
+  end: today
+
+networks: [mainnet, testnet]
+
+catalog:
+  patterns: catalog/patterns.yaml
+  bug_classes: catalog/bug-classes.yaml
+  libraries: catalog/libraries.yaml
+  proposals: catalog/proposals.yaml
+
+discover:
+  crates_io:
+    crates: [soroban-sdk, soroban-token-sdk, stellar-access, stellar-tokens, stellar-macros]
+    reverse_dependencies: true
+  repository_queries:
+    - "topic:soroban"
+    - "topic:soroban-contract"
+    - "topic:stellar-smart-contracts"
+    - "topic:stellar language:Rust"
+    - "topic:stellar-soroban"
+    - "soroban-sdk in:readme language:Rust"
+    - "soroban in:name,description language:Rust"
+    - "contractimpl in:readme"
+  code_queries:
+    - "soroban-sdk filename:Cargo.toml"
+    - "soroban-sdk filename:Cargo.toml path:contracts"
+    - "contractimpl language:Rust"
+    - "contracttype language:Rust"
+    - "extern crate soroban_sdk language:Rust"
+    - "use soroban_sdk language:Rust"
+    - "contractimport language:Rust"
+  exclude_owners: []
+  exclude_repos: []
+  min_window_commits: 0
+
+clone:
+  shallow_since: "{start}"
+  max_repo_kb: 750000
+  concurrency: 6
+  keep: false
+  rust_suffixes: [.rs]
+  manifests: [Cargo.toml, Cargo.lock]
+  max_file_bytes: 1000000
+  skip_directories: [target, node_modules, .git, vendor, test_snapshots]
+
+documents:
+  max_text_bytes: 200000
+  kinds:
+    audit:
+      globs: ["audit*/**", "**/audits/**", "**/*audit*.md", "**/*audit*.pdf", "**/security-review*", "**/*report*.pdf"]
+    security:
+      globs: ["SECURITY.md", "**/SECURITY.md", ".github/SECURITY.md"]
+    readme:
+      globs: ["README*", "**/README*"]
+    changelog:
+      globs: ["CHANGELOG*", "**/CHANGELOG*", "RELEASES*"]
+    ci:
+      globs: [".github/workflows/*.yml", ".github/workflows/*.yaml", ".gitlab-ci.yml", "Makefile", "justfile", "Taskfile.yml"]
+    toolchain:
+      globs: ["rust-toolchain*", "soroban.json", "stellar.toml", "stellar-cli.toml", ".stellar/**", "deny.toml", "clippy.toml", "rustfmt.toml"]
+    docs:
+      globs: ["docs/**/*.md", "doc/**/*.md"]
+    license:
+      globs: ["LICENSE*", "COPYING*"]
+
+history:
+  commits: all
+  commit_files: true
+  issues: all
+  releases: true
+  contributors: true
+  profiles: true
+  fix_message: '(?i)\b(fix(es|ed)?|bug(fix)?|patch|hotfix|vuln|vulnerability|exploit|security|cve|overflow|underflow|panic|archiv\w*|expir\w*|ttl|re-?init\w*|auth(oriz|entic)\w*|revert)\b'
+
+networks_signals:
+  mainnet:
+    - {signal: rpc, regex: 'soroban-rpc\.mainnet|mainnet\.sorobanrpc\.com|rpc\.mainnet|stellar-mainnet|soroban\.stellar\.org'}
+    - {signal: horizon, regex: 'horizon\.stellar\.org'}
+    - {signal: passphrase, regex: 'Public Global Stellar Network ; September 2015'}
+    - {signal: cli, regex: '--network[ =](mainnet|public|pubnet)|NETWORK\s*[:=]\s*[''"]?(mainnet|public|pubnet)'}
+    - {signal: sdk, regex: 'Networks\.PUBLIC|Network::Public|StellarNetwork::Mainnet|network_passphrase.*Public'}
+  testnet:
+    - {signal: rpc, regex: 'soroban-testnet\.stellar\.org|rpc\.testnet|stellar-testnet'}
+    - {signal: horizon, regex: 'horizon-testnet\.stellar\.org'}
+    - {signal: passphrase, regex: 'Test SDF Network ; September 2015'}
+    - {signal: cli, regex: '--network[ =]testnet|NETWORK\s*[:=]\s*[''"]?testnet'}
+    - {signal: sdk, regex: 'Networks\.TESTNET|Network::Test|StellarNetwork::Testnet|friendbot'}
+  futurenet:
+    - {signal: rpc, regex: 'rpc-futurenet\.stellar\.org|horizon-futurenet'}
+    - {signal: passphrase, regex: 'Test SDF Future Network ; October 2022'}
+
+chain:
+  mainnet:
+    rpc_urls:
+      - https://mainnet.sorobanrpc.com
+      - https://soroban-rpc.mainnet.stellar.gateway.fm
+      - https://rpc.lightsail.network
+    lake: https://aws-public-blockchain.s3.us-east-2.amazonaws.com/v1.1/stellar/parquet/pubnet/v1
+  testnet:
+    rpc_urls:
+      - https://soroban-testnet.stellar.org
+    lake: https://aws-public-blockchain.s3.us-east-2.amazonaws.com/v1.1/stellar/parquet/testnet/v1
+  lake:
+    concurrency: 32
+    days_per_run: 0
+    newest_first: true
+    contracts_only: true
+  rpc:
+    batch_keys: 200
+    concurrency: 4
+
+stages:
+  - {id: catalog, uses: catalog.sync}
+  - {id: discover, uses: github.discover, needs: [catalog]}
+  - {id: metadata, uses: github.metadata, needs: [discover]}
+  - {id: clone, uses: git.extract, needs: [metadata]}
+  - {id: history, uses: github.history, needs: [metadata]}
+  - {id: chain, uses: chain.state, needs: [clone]}
+  - {id: lake, uses: chain.lake, needs: [chain]}
+  - {id: graph, uses: graph.build, needs: [clone, history, chain]}

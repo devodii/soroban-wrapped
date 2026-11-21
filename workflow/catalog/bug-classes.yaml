@@ -1,0 +1,54 @@
+bug_classes:
+  - id: ttl-archival
+    name: Entries archived or expired
+    severity: high
+    description: A persistent or instance entry reaches the end of its lifetime and is archived, so balances or config stop being readable until restored.
+    keywords: '(?i)\b(archiv\w*|expir\w*|ttl|extend_ttl|bump|lifetime|restore\w*|entry (is )?(not found|missing)|footprint)\b'
+
+  - id: missing-auth
+    name: Missing or wrong authorisation
+    severity: critical
+    description: A state changing function can be called without the right address having signed.
+    keywords: '(?i)\b(require_auth\w*|missing auth\w*|unauthori[sz]ed|anyone can|access control|authori[sz]ation|only\s*(owner|admin)|privilege)\b'
+
+  - id: reinitialisation
+    name: Re-initialisation or init front-running
+    severity: critical
+    description: An initialize function can be called twice or by the wrong caller, handing ownership to an attacker.
+    keywords: '(?i)\b(re-?initiali[sz]\w*|initiali[sz]e (twice|again)|already initiali[sz]ed|front-?run\w*|constructor)\b'
+
+  - id: untyped-failure
+    name: Failures that clients cannot read
+    severity: medium
+    description: Untyped panics and unwraps abort with codes that wallets and clients cannot map to a cause.
+    keywords: '(?i)\b(unwrap|expect|panic\w*|unhelpful error|error code|Error\(Contract|WasmVm|InvalidAction|trap\w*)\b'
+
+  - id: arithmetic
+    name: Overflow and rounding
+    severity: high
+    description: Token maths overflows, underflows or rounds in the wrong direction.
+    keywords: '(?i)\b(overflow\w*|underflow\w*|rounding|precision|checked_\w+|saturating|i128|u128|decimals?)\b'
+
+  - id: event-indexing
+    name: Broken or inconsistent events
+    severity: medium
+    description: Event topics are mistyped, reordered or exceed the topic limit, so indexers and wallets miss or misread them.
+    keywords: '(?i)\b(event\w*\s+(topic|name|missing|wrong|schema)|topics?\b.*\b(limit|four|4)|indexer|symbol_short|publish)\b'
+
+  - id: upgrade-safety
+    name: Unsafe upgrades
+    severity: high
+    description: Contract upgrades without access control or storage migration break or hijack a deployed contract.
+    keywords: '(?i)\b(upgrad\w*|migrat\w*|update_current_contract_wasm|proxy)\b'
+
+  - id: dos-resource
+    name: Resource limits and denial of service
+    severity: medium
+    description: Unbounded loops, large entries or footprint overruns make a function uncallable.
+    keywords: '(?i)\b(budget|instructions?|cpu|resource (limit|exceeded)|out of gas|unbounded|dos\b|denial of service|entry size|read bytes|write bytes)\b'
+
+  - id: test-gap
+    name: Tests that hide real auth and state bugs
+    severity: low
+    description: Tests mock every auth or skip ledger movement, so the real call path is never exercised.
+    keywords: '(?i)\b(mock_all_auths|test (setup|harness|helper|boilerplate)|flaky test|test snapshot)\b'
