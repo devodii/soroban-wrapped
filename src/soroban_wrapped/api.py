@@ -26,18 +26,6 @@ def records(rows: list[asyncpg.Record]) -> list[dict[str, Any]]:
     return [dict(row) for row in rows]
 
 
-def verdict(row: dict[str, Any]) -> str:
-    if row["soroban_repos"] == 0:
-        return "no data yet"
-    share = row["boilerplate_repos"] / row["soroban_repos"]
-    supported = (
-        row["boilerplate_repos"] >= row["min_repos"]
-        and share >= float(row["min_share"])
-        and row["boilerplate_occurrences"] >= row["min_occurrences"]
-    )
-    return "supported" if supported else "not supported"
-
-
 def recall(found: dict[str, Any]) -> dict[str, Any]:
     text, content, both = found["by_text"], found["by_content"], found["by_both"]
     reliable = both >= MIN_OVERLAP
@@ -55,8 +43,6 @@ def recall(found: dict[str, Any]) -> dict[str, Any]:
 async def overview(pool: asyncpg.Pool, limit: int) -> dict[str, Any]:
     async with pool.acquire() as connection:
         proposals = records(await connection.fetch(load_sql("overview_proposals")))
-        for row in proposals:
-            row["verdict"] = verdict(row)
         return {
             "counts": dict(await connection.fetchrow(load_sql("overview_counts"))),
             "stages": records(await connection.fetch(load_sql("overview_stages"))),

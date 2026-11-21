@@ -102,13 +102,21 @@ const VIEWS = {
     return search('filter patterns…') + table('patterns', [{key:'id',label:'pattern'},{key:'category',label:'category'},{key:'repos',label:'repos',num:1},{key:'occurrences',label:'occurrences',num:1,render:(r)=>fmt(r.occurrences)},{key:'description',label:'what it is'}], d.patterns);
   },
   proposals(d) {
-    return `<p class="muted">Seeds from the catalog, scored against the corpus. Mined proposals appear here as the miner runs.</p>` + table('proposals', [
+    const m = (r) => (r.evidence || {}).metrics || {};
+    const ind = (r) => r.evidence && r.evidence.copy_share != null ? Math.round((1 - r.evidence.copy_share) * 100) + '%' : '';
+    return `<p class="muted">Every proposal is scored by the same reuse formula. <b>seed</b> = a hypothesis from the catalog, <b>mined</b> = found in the code by the miner. Click a row for the evidence.</p>` + search('filter proposals…') + table('proposals', [
+      {key:'score',label:'score',num:1,render:(r)=>`<b>${Number(r.score).toFixed(1)}</b>`},
       {key:'name',label:'proposal'},
-      {key:'verdict',label:'verdict',render:(r)=>`<span class="${r.verdict==='supported'?'ok':'muted'}">${esc(r.verdict)}</span>`},
-      {key:'boilerplate_repos',label:'repos hand-rolling',num:1,render:(r)=>`${fmt(r.boilerplate_repos)} / ${fmt(r.soroban_repos)}`},
-      {key:'boilerplate_occurrences',label:'occurrences',num:1,render:(r)=>fmt(r.boilerplate_occurrences)},
-      {key:'footgun_repos',label:'repos with the footgun',num:1}, {key:'adopted_repos',label:'repos on a library',num:1},
-      {key:'min_repos',label:'needs',render:(r)=>`≥${r.min_repos} repos, ≥${(r.min_share*100).toFixed(0)}%, ≥${r.min_occurrences}`}, {key:'summary',label:'summary'}], d.proposals);
+      {key:'origin',label:'origin',render:(r)=>`<span class="badge">${esc(r.origin)}</span>`},
+      {key:'status',label:'status',render:(r)=>`<span class="${['supported','strong','accepted'].includes(r.status)?'ok':r.status==='unsupported'?'bad':'muted'}">${esc(r.status)}</span>`},
+      {key:'o',label:'owners',num:1,render:(r)=>fmt(m(r).owners)},
+      {key:'r',label:'repos',num:1,render:(r)=>fmt(m(r).repos)},
+      {key:'occ',label:'times written',num:1,render:(r)=>fmt(m(r).occurrences)},
+      {key:'ind',label:'written independently',num:1,render:ind},
+      {key:'mn',label:'mainnet repos',num:1,render:(r)=>fmt(m(r).mainnet_repos)},
+      {key:'fx',label:'fixes + bug issues',num:1,render:(r)=>fmt((m(r).fix_commits||0)+(m(r).bug_issues||0))},
+      {key:'loc',label:'lines',num:1,render:(r)=>fmt(m(r).loc_total)},
+      {key:'comments',label:'💬',num:1}], d.proposals, true);
   },
   candidates(d) {
     return `<p class="muted">What the miner found in the corpus that the catalog does not cover yet.</p>` + search('filter candidates…') + table('candidates', [{key:'kind',label:'kind'},{key:'title',label:'candidate'},{key:'repos',label:'repos',num:1},{key:'occurrences',label:'occurrences',num:1},{key:'score',label:'score',num:1,render:(r)=>Number(r.score).toFixed(1)},{key:'status',label:'status'}], d.candidates);
@@ -144,6 +152,29 @@ async function drawGraph() {
     .nodeLabel((n) => `${n.kind}: ${n.label}`).nodeColor((n) => colors[n.kind] || '#8b949e').nodeVal((n) => 1 + Math.log1p((n.props||{}).weight || 1))
     .linkOpacity(0.3).linkWidth((l) => Math.min(3, Math.log1p(l.value)/2)).backgroundColor('#0d1117').onNodeClick((n) => n.kind === 'repo' && openRepo(n.label));
 }
+async function openProposal(p) {
+  const rows = await (await fetch('/api/comments?target_kind=proposal&target_id=' + encodeURIComponent(p.id))).json();
+  const ev = p.evidence || {}, mt = ev.metrics || {}, comp = ev.components || {}, w = ev.weighted || {}, sm = ev.sample || {};
+  const bars = Object.keys(comp).map((k) => `<div style="display:flex;gap:8px;align-items:center;margin:3px 0"><span style="width:110px" class="muted">${k}</span><div style="flex:1;background:var(--line);border-radius:4px;height:8px"><div style="width:${Math.round(comp[k]*100)}%;height:8px;border-radius:4px;background:${(w[k]||0)<0?'var(--bad)':'var(--brand)'}"></div></div><span style="width:44px;text-align:right">${(comp[k]*100).toFixed(0)}%</span></div>`).join('');
+  const d = $('#drawer'); d.classList.add('open');
+  d.innerHTML = `<button onclick="document.querySelector('#drawer').classList.remove('open')">close</button>
+    <h3>${esc(p.name)}</h3><p><span class="badge">${esc(p.origin)}</span> <span class="badge">${esc(p.status)}</span> <b>score ${Number(p.score).toFixed(1)}</b></p>
+    <p>${esc(p.summary)}</p>
+    <h4>Why it scores this</h4>${bars || '<span class="muted">no breakdown yet</span>'}
+    <p class="muted">${fmt(mt.owners)} owners, ${fmt(mt.repos)} repos, written ${fmt(mt.occurrences)} times. ${fmt(mt.recent_repos)} repos active in the last 90 days, ${fmt(mt.adopted_repos)} already on a library, ${fmt(mt.mainnet_repos)} on mainnet.</p>
+    ${ev.roles ? '<h4>Pattern roles</h4><pre style="white-space:pre-wrap">' + esc(JSON.stringify(ev.roles, null, 1)) + '</pre>' : ''}
+    ${(p.sketch || sm.snippet) ? '<h4>' + (sm.repo ? 'Real example from <a target="_blank" href="https://github.com/' + esc(sm.repo) + '/blob/HEAD/' + esc(sm.path || '') + '#L' + (sm.start || 1) + '">' + esc(sm.repo) + '</a>' : 'Sketch') + '</h4><pre style="overflow:auto;background:var(--bg);padding:10px;border-radius:8px"><code>' + esc(sm.snippet || p.sketch) + '</code></pre>' : ''}
+    ${ev.names ? '<h4>Names people reinvent</h4><p>' + ev.names.map((n) => esc(n.name) + ' <span class="muted">(' + n.owners + ')</span>').join(', ') + '</p>' : ''}
+    <h4>Notes</h4><div>${rows.map((c) => `<div class="comment"><b>${esc(c.author)}</b> <span class="muted">${esc(String(c.created_at).slice(0,16))}</span><br>${esc(c.body)}</div>`).join('') || '<div class="muted">no notes yet</div>'}</div>
+    <p><input type="text" id="who" placeholder="your name" value="${esc(localStorage.getItem('who')||'')}" style="width:100%;margin-bottom:6px"><textarea id="note" placeholder="leave a note on this proposal"></textarea></p>
+    <button class="primary" id="send">Add note</button>`;
+  $('#send').onclick = async () => {
+    const author = $('#who').value || 'anonymous'; localStorage.setItem('who', author);
+    const body = $('#note').value.trim(); if (!body) return;
+    await fetch('/api/comments', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ target_kind:'proposal', target_id:p.id, author, body }) });
+    openProposal(p); load();
+  };
+}
 async function openRepo(name) {
   const rows = await (await fetch('/api/comments?target_kind=repo&target_id=' + encodeURIComponent(name))).json();
   const d = $('#drawer'); d.classList.add('open');
@@ -164,7 +195,7 @@ async function openRepo(name) {
 document.addEventListener('click', (e) => {
   const tab = e.target.closest('[data-tab]'); if (tab) { state.tab = tab.dataset.tab; state.filter = ''; state.graphShown = false; location.hash = state.tab; draw(); return; }
   const th = e.target.closest('[data-sort]'); if (th) { const [id, key] = th.dataset.sort.split(':'); const cur = state.sort[id]; state.sort[id] = { key, dir: cur?.key === key ? -cur.dir : -1 }; draw(); return; }
-  const row = e.target.closest('tr[data-row]'); if (row) { const [id, i] = row.dataset.row.split(':'); const r = state.rows[id][i]; if (id === 'repos') openRepo(r.full_name); }
+  const row = e.target.closest('tr[data-row]'); if (row) { const [id, i] = row.dataset.row.split(':'); const r = state.rows[id][i]; if (id === 'repos') openRepo(r.full_name); if (id === 'proposals') openProposal(r); }
 });
 load(); setInterval(() => $('#auto').checked && load(), 10000);
 </script>
