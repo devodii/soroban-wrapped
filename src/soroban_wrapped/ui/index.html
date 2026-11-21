@@ -183,7 +183,9 @@ function buildView() {
   const ids = new Set(nodeList.map((n) => n.id));
   const links = edges.filter((e) => ids.has(e.src) && ids.has(e.dst)).map((e) => ({ source: e.src, target: e.dst, kind: e.kind, value: Number(e.weight) }));
   $('#graphnote').textContent = note + ` ${nodeList.length} nodes, ${links.length} links.`;
-  return { nodes: nodeList.map((n) => ({ ...n })), links };
+  const ranked = nodeList.filter((n) => n.kind === 'repo').sort((a, b) => ((b.props || {}).weight || 0) - ((a.props || {}).weight || 0));
+  const rank = Object.fromEntries(ranked.map((n, i) => [n.id, i]));
+  return { nodes: nodeList.map((n) => ({ ...n, rank: rank[n.id] })), links };
 }
 function neighbours(id, links) {
   const set = new Set([id]);
@@ -202,14 +204,22 @@ function paintGraph() {
     .linkWidth((l) => (near ? 1.4 : 0.6)).linkDirectionalArrowLength((l) => (l.kind === 'hand_rolls' ? 0 : 3)).linkDirectionalArrowRelPos(1)
     .nodeCanvasObject((n, ctx, scale) => {
       const r = Math.sqrt(n.kind === 'proposal' ? 30 + ((n.props || {}).weight || 1) : n.kind === 'repo' ? 3 + ((n.props || {}).weight || 1) * 1.5 : 36);
-      const dim = (near && !near.has(n.id)) || (q && !n.label.toLowerCase().includes(q) && n.kind === 'repo');
+      const matches = q && n.label.toLowerCase().includes(q);
+      const dim = (near && !near.has(n.id)) || (q && !matches && n.kind === 'repo');
       ctx.globalAlpha = dim ? 0.12 : 1; ctx.fillStyle = KIND[n.kind].color; ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 2 * Math.PI); ctx.fill();
-      if (gstate.selected === n.id) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2 / scale; ctx.stroke(); }
-      const label = n.kind !== 'repo' || scale > 2.6 || (near && near.has(n.id)) || (q && n.label.toLowerCase().includes(q));
-      if (label && !dim) { ctx.font = `${Math.max(10, 12 / Math.sqrt(scale)) }px sans-serif`; ctx.fillStyle = '#e6edf3'; ctx.textAlign = 'center'; ctx.fillText(n.label.length > 38 ? n.label.slice(0, 36) + '…' : n.label, n.x, n.y + r + 10 / Math.sqrt(scale)); }
+      if (gstate.selected === n.id || gstate.hover === n.id) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2 / scale; ctx.stroke(); }
+      const big = n.kind !== 'repo';
+      const label = big || matches || gstate.hover === n.id || gstate.selected === n.id || (near && near.has(n.id) && near.size < 40) || (n.rank != null && n.rank < 8 && scale > 1.2);
+      if (label && !dim) {
+        const size = (big ? 13 : 11) / scale, text = n.label.length > 42 ? n.label.slice(0, 40) + '…' : n.label;
+        ctx.font = `${big ? 600 : 400} ${size}px sans-serif`; ctx.textAlign = 'center'; ctx.lineJoin = 'round';
+        ctx.lineWidth = 3 / scale; ctx.strokeStyle = '#0d1117'; ctx.strokeText(text, n.x, n.y + r + 12 / scale);
+        ctx.fillStyle = '#e6edf3'; ctx.fillText(text, n.x, n.y + r + 12 / scale);
+      }
       ctx.globalAlpha = 1;
     })
     .nodePointerAreaPaint((n, color, ctx) => { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(n.x, n.y, 8, 0, 2 * Math.PI); ctx.fill(); })
+    .onNodeHover((n) => { gstate.hover = n ? n.id : null; el.style.cursor = n ? 'pointer' : 'default'; })
     .onNodeClick((n) => {
       gstate.selected = n.id; near = neighbours(n.id, data.links); g.linkColor(g.linkColor());
       if (n.kind === 'repo') openRepo(n.label);
@@ -217,6 +227,7 @@ function paintGraph() {
       else if (n.kind === 'contract') window.open('https://stellar.expert/explorer/' + ((n.props || {}).network === 'mainnet' ? 'public' : 'testnet') + '/contract/' + n.id.split(':')[2], '_blank');
     })
     .onBackgroundClick(() => { gstate.selected = null; near = null; g.linkColor(g.linkColor()); });
+  g.d3Force('charge').strength(-45); g.d3Force('link').distance((l) => (l.kind === 'hand_rolls' ? 70 : 90));
   gstate.graph = g;
   if (q) { const hit = data.nodes.find((n) => n.label.toLowerCase().includes(q)); if (hit) setTimeout(() => g.centerAt(hit.x, hit.y, 600).zoom(4, 600), 700); }
   else setTimeout(() => g.zoomToFit(400, 60), 900);
