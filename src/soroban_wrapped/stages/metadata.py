@@ -14,8 +14,8 @@ from soroban_wrapped.workflow import Stage
 
 log = logging.getLogger("soroban_wrapped")
 
-BATCH = 100
-CONCURRENCY = 8
+BATCH = 40
+CONCURRENCY = 6
 VALID_NAME = re.compile(r"^[\w.-]+/[\w.-]+$")
 FIELDS = """
   nameWithOwner url description stargazerCount forkCount isFork isArchived isTemplate
@@ -30,8 +30,6 @@ FIELDS = """
     name
     target {{ ... on Commit {{
       oid
-      total: history {{ totalCount }}
-      inWindow: history(since: "{start}T00:00:00Z", until: "{end}T23:59:59Z") {{ totalCount }}
     }} }}
   }}
   owner {{ __typename login ... on User {{ location }} ... on Organization {{ location }} }}

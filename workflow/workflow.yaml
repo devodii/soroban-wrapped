@@ -175,7 +175,7 @@ improve:
 
 ecosystem:
   batch: 8
-  concurrency: 4
+  concurrency: 10
   max_text_bytes: 120000
   manifests: [package.json, requirements.txt, pyproject.toml, go.mod, Cargo.toml, composer.json, Gemfile, pubspec.yaml, Package.swift, build.gradle, build.gradle.kts, pom.xml, Pipfile]
   nested_manifests: [package.json, requirements.txt, pyproject.toml, go.mod, Cargo.toml, composer.json]

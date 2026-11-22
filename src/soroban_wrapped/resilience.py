@@ -34,5 +34,9 @@ async def resilient[T](http: httpx.AsyncClient, call: Callable[[], Awaitable[T]]
         try:
             return await call()
         except NETWORK_ERRORS as error:
-            log.warning("network trouble (%s), waiting to resume", type(error).__name__)
+            log.warning(
+                "network trouble (%s: %s), waiting to resume",
+                type(error).__name__,
+                str(error)[:120],
+            )
             await until_online(http)
