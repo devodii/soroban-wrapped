@@ -123,7 +123,16 @@ async def harvest(context: Context, _: Stage) -> None:
             continue
         stored = 0
         for file in sorted(target.rglob("*.jsonl.gz")):
-            stored += await import_file(context, file)
+            key = f"{run_id}/{file.parent.name}"
+            saved_file = await checkpoints.get(context.pool, "extract-file", key)
+            if saved_file and saved_file.done:
+                continue
+            count = await import_file(context, file)
+            stored += count
+            await checkpoints.put(
+                context.pool, "extract-file", key, "done", {"repos": count}
+            )
+            log.info("imported %s, %s repos", key, count)
         await checkpoints.put(context.pool, JOB, run_id, "done", {"repos": stored})
         shutil.rmtree(target, ignore_errors=True)
         await drop_artifacts(run_id)
