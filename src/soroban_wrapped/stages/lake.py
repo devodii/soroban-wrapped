@@ -78,6 +78,7 @@ async def lake(context: Context, _: Stage) -> None:
         if saved and saved.done:
             continue
         target = RUNS_DIR / run_id
+        shutil.rmtree(target, ignore_errors=True)
         try:
             await gh("run", "download", run_id, "-D", str(target))
         except RuntimeError as error:
