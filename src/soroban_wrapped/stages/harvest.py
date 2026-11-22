@@ -27,6 +27,7 @@ def read_lines(path):
 
 
 IMPORT_WORKERS = 8
+DOWNLOADS = 6
 
 
 async def import_file(context: Context, path) -> int:
@@ -53,6 +54,19 @@ async def import_file(context: Context, path) -> int:
 
     await asyncio.gather(*(one(line) for line in lines))
     return stored
+
+
+async def download(run_id: str, target, names: list[str]) -> None:
+    gate = asyncio.Semaphore(DOWNLOADS)
+
+    async def fetch(name: str) -> None:
+        if any((target / name).glob("*.jsonl.gz")):
+            return
+        async with gate:
+            shutil.rmtree(target / name, ignore_errors=True)
+            await gh("run", "download", run_id, "-n", name, "-D", str(target / name))
+
+    await asyncio.gather(*(fetch(name) for name in names))
 
 
 @stage("git.harvest")
@@ -92,13 +106,7 @@ async def harvest(context: Context, _: Stage) -> None:
                     "[.artifacts[] | select(.expired | not) | .name]",
                 )
             )
-            for name in names:
-                if any((target / name).glob("*.jsonl.gz")):
-                    continue
-                shutil.rmtree(target / name, ignore_errors=True)
-                await gh(
-                    "run", "download", run_id, "-n", name, "-D", str(target / name)
-                )
+            await download(run_id, target, names)
         except RuntimeError as error:
             await checkpoints.put(context.pool, JOB, run_id, "failed", {}, str(error))
             context.errors += 1
