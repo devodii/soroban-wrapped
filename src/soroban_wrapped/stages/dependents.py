@@ -3,6 +3,7 @@ import html
 import logging
 import re
 
+import httpx
 from pydantic import BaseModel
 
 from soroban_wrapped import checkpoints
@@ -15,7 +16,7 @@ log = logging.getLogger("soroban_wrapped")
 
 JOB = "dependents"
 AGENT = "Mozilla/5.0 (compatible; soroban-wrapped research indexer)"
-PAUSE = 0.8
+PAUSE = 1.5
 MENU = re.compile(
     r'select-menu-item-text">\s*([^<]+?)\s*</span>.*?'
     r'dependents\?package_id=([A-Za-z0-9=]+)"',
@@ -42,17 +43,23 @@ def packages_of(page: str) -> list[Package]:
 
 
 async def fetch(context: Context, url: str) -> str:
-    async def call() -> str:
-        response = await context.http.get(
+    wait = 30.0
+
+    async def call() -> httpx.Response:
+        return await context.http.get(
             url, headers={"User-Agent": AGENT}, timeout=40, follow_redirects=True
         )
+
+    while True:
+        response = await resilient(context.http, call)
         if response.status_code in (429, 502, 503):
-            await asyncio.sleep(30)
-            raise OSError(f"{response.status_code} from {url}")
+            delay = float(response.headers.get("retry-after", wait))
+            log.info("dependents paused %ss (%s)", int(delay), response.status_code)
+            await asyncio.sleep(delay)
+            wait = min(wait * 2, 900)
+            continue
         response.raise_for_status()
         return response.text
-
-    return await resilient(context.http, call)
 
 
 async def crawl(context: Context, root: str, package: Package) -> int:
@@ -99,6 +106,7 @@ async def crawl(context: Context, root: str, package: Package) -> int:
 
 @stage("github.dependents")
 async def dependents(context: Context, _: Stage) -> None:
+    await link_chain_sources(context)
     for source in context.workflow.discover.dependents:
         first = await fetch(
             context, f"https://github.com/{source.repo}/network/dependents"
@@ -108,3 +116,8 @@ async def dependents(context: Context, _: Stage) -> None:
         for package in wanted:
             added = await crawl(context, source.repo, package)
             log.info("dependents %s %s: %s repos", source.repo, package.name, added)
+
+
+async def link_chain_sources(context: Context) -> None:
+    result = await context.pool.execute(load_sql("link_chain_sources"))
+    log.info("on-chain source links: %s", result)
