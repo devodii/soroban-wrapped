@@ -120,12 +120,11 @@ def create_app() -> FastAPI:
     async def lifespan(app: FastAPI):
         app.state.pool = await open_pool()
         app.state.snapshots = Snapshots(app.state.pool)
-        for limit in (500,):
-            asyncio.create_task(
-                app.state.snapshots.get(
-                    f"overview:{limit}", lambda: overview(app.state.pool, limit)
-                )
+        asyncio.create_task(
+            app.state.snapshots.get(
+                "overview:500", lambda: overview(app.state.pool, 500)
             )
+        )
         asyncio.create_task(
             app.state.snapshots.get("graph", lambda: graph(app.state.pool))
         )
