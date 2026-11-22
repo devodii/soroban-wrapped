@@ -607,6 +607,63 @@ export interface components {
             /** Sha */
             sha: string;
         };
+        /** GapEvidence */
+        GapEvidence: {
+            /**
+             * Comments
+             * @default 0
+             */
+            comments: number;
+            /**
+             * Reactions
+             * @default 0
+             */
+            reactions: number;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+        };
+        /** GapItem */
+        GapItem: {
+            /**
+             * Coverage
+             * @default 0
+             */
+            coverage: number;
+            /**
+             * Evidence
+             * @default []
+             */
+            evidence: components["schemas"]["GapEvidence"][];
+            /** Item */
+            item: string;
+            /** Status */
+            status: string;
+        };
+        /** GapTool */
+        GapTool: {
+            /**
+             * Items
+             * @default []
+             */
+            items: components["schemas"]["GapItem"][];
+            /** Name */
+            name: string;
+            /**
+             * Reasons
+             * @default []
+             */
+            reasons: string[];
+            /** Summary */
+            summary: string;
+            /** Tool */
+            tool: string;
+            /** Url */
+            url?: string | null;
+            /** Verdict */
+            verdict: string;
+        };
         /** GraphEdge */
         GraphEdge: {
             /** Dst */
@@ -1192,6 +1249,11 @@ export interface components {
              */
             gap: string;
             /**
+             * Gap Analysis
+             * @default []
+             */
+            gap_analysis: components["schemas"]["GapTool"][];
+            /**
              * Priority
              * @default
              */
@@ -1400,6 +1462,9 @@ export type Evidence = components['schemas']['Evidence'];
 export type EvidenceCount = components['schemas']['EvidenceCount'];
 export type ExistingTool = components['schemas']['ExistingTool'];
 export type FixExample = components['schemas']['FixExample'];
+export type GapEvidence = components['schemas']['GapEvidence'];
+export type GapItem = components['schemas']['GapItem'];
+export type GapTool = components['schemas']['GapTool'];
 export type GraphEdge = components['schemas']['GraphEdge'];
 export type GraphNode = components['schemas']['GraphNode'];
 export type GraphResponse = components['schemas']['GraphResponse'];

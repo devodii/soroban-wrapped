@@ -682,6 +682,120 @@
         "title": "FixExample",
         "type": "object"
       },
+      "GapEvidence": {
+        "properties": {
+          "comments": {
+            "default": 0,
+            "title": "Comments",
+            "type": "integer"
+          },
+          "reactions": {
+            "default": 0,
+            "title": "Reactions",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "url"
+        ],
+        "title": "GapEvidence",
+        "type": "object"
+      },
+      "GapItem": {
+        "properties": {
+          "coverage": {
+            "default": 0,
+            "title": "Coverage",
+            "type": "number"
+          },
+          "evidence": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/GapEvidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "item": {
+            "title": "Item",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item",
+          "status"
+        ],
+        "title": "GapItem",
+        "type": "object"
+      },
+      "GapTool": {
+        "properties": {
+          "items": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/GapItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "reasons": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "verdict": {
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool",
+          "name",
+          "verdict",
+          "summary"
+        ],
+        "title": "GapTool",
+        "type": "object"
+      },
       "GraphEdge": {
         "properties": {
           "dst": {
@@ -2289,6 +2403,14 @@
             "default": "",
             "title": "Gap",
             "type": "string"
+          },
+          "gap_analysis": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/GapTool"
+            },
+            "title": "Gap Analysis",
+            "type": "array"
           },
           "priority": {
             "default": "",

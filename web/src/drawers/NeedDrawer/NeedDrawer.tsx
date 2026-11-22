@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useNeed } from '../../lib/queries'
 import { rfpMarkdown } from '../../lib/rfp'
+import { GapAnalysis } from '../GapAnalysis/GapAnalysis'
 import { Comments } from '../../comments/Comments/Comments'
 import { CopyButton } from '../../ui/CopyButton/CopyButton'
 import { Drawer } from '../../ui/Drawer/Drawer'
@@ -80,6 +81,11 @@ export function NeedDrawer({ id, onClose }: { id: string | null; onClose: () => 
               </ul>
             )}
           </Section>
+          {need.rfp.gap_analysis.length > 0 && (
+            <Section title="What is missing">
+              <GapAnalysis tools={need.rfp.gap_analysis} />
+            </Section>
+          )}
           <Section title="Evidence">
             {kinds.length > 0 && (
               <Tabs

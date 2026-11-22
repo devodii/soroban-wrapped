@@ -7,7 +7,21 @@ export function rfpMarkdown(need: NeedDetail): string {
     `# RFP: ${rfp.title || need.title}`,
     `Priority: ${rfp.priority || 'unrated'} · demand score ${need.score.toFixed(1)}`,
     `## Problem\n${rfp.problem || need.summary}`,
-    rfp.gap ? `## Gap in existing tools\n${rfp.gap}` : '',
+    rfp.gap_analysis.length
+      ? `## What is missing in existing tools\n${rfp.gap_analysis
+          .map(
+            (tool) =>
+              `### ${tool.name}: ${tool.verdict}\n${tool.summary}\n${list(
+                tool.items.map(
+                  (item) =>
+                    `${item.status}: ${item.item}${item.evidence[0] ? ` (related open issue: ${item.evidence[0].title} ${item.evidence[0].url})` : ''}`,
+                ),
+              )}`,
+          )
+          .join('\n\n')}`
+      : rfp.gap
+        ? `## Gap in existing tools\n${rfp.gap}`
+        : '',
     rfp.deliverables.length ? `## Deliverables\n${list(rfp.deliverables)}` : '',
     rfp.success_metrics.length ? `## Success metrics\n${list(rfp.success_metrics)}` : '',
     rfp.who_is_affected.length
