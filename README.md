@@ -15,6 +15,8 @@ uv run soroban-wrapped drive    # autopilot, runs every stage and keeps going
 uv run soroban-wrapped serve    # live UI on http://localhost:8787
 ```
 
+The public web app lives in `web/` (see `decisions.md`). Build it with `cd web && pnpm install && pnpm build`, then `serve` hosts it at http://localhost:8787/app. For development run `pnpm dev` in `web` (proxies `/api` to :8787) and `pnpm storybook` for the component workbench. After an API change run `pnpm types`.
+
 Add more tokens to `.env` at any time. Running jobs pick them up within 30 seconds.
 
 ## What runs
