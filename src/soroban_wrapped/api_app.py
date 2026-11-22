@@ -378,28 +378,28 @@ async def load_patterns(pool: asyncpg.Pool) -> list[PatternItem]:
     ]
 
 
+async def build_wrapped(pool: asyncpg.Pool, cache: Cache) -> Wrapped:
+    counts, days, top_proposals, top_needs = await asyncio.gather(
+        rows(pool, "v2_summary_counts"),
+        rows(pool, "v2_chain_days"),
+        proposal_items(pool, cache),
+        need_items(pool, cache),
+    )
+    return Wrapped(
+        **counts[0],
+        top_proposals=top_proposals[:14],
+        top_patterns=[],
+        top_needs=top_needs[:12],
+        days=[ChainDay.model_validate(d) for d in days],
+        top_contracts=[],
+        top_edges=[],
+    )
+
+
 @router.get("/wrapped", response_model=Wrapped)
 async def wrapped(request: Request) -> Wrapped:
     pool, cache = pool_of(request), cache_of(request)
-
-    async def make() -> Wrapped:
-        counts, days, top_proposals, top_needs = await asyncio.gather(
-            rows(pool, "v2_summary_counts"),
-            rows(pool, "v2_chain_days"),
-            proposal_items(pool, cache),
-            need_items(pool, cache),
-        )
-        return Wrapped(
-            **counts[0],
-            top_proposals=top_proposals[:14],
-            top_patterns=[],
-            top_needs=top_needs[:12],
-            days=[ChainDay.model_validate(d) for d in days],
-            top_contracts=[],
-            top_edges=[],
-        )
-
-    base = await cache.get("wrapped", make, SHORT_TTL)
+    base = await cache.get("wrapped", lambda: build_wrapped(pool, cache), SHORT_TTL)
     patterns_ = cache.peek("patterns", lambda: load_patterns(pool), LONG_TTL)
     top = cache.peek("chain_top", lambda: load_chain_top(pool), LONG_TTL)
     return base.model_copy(
@@ -904,12 +904,18 @@ async def add_comment(request: Request, comment: CommentCreate) -> Comment:
     return Comment.model_validate(found[0])
 
 
+async def warm_chain(pool: asyncpg.Pool, cache: Cache) -> None:
+    top = await cache.get("chain_top", lambda: load_chain_top(pool), LONG_TTL)
+    await cache.get("chain_graph", lambda: load_chain_graph(pool, top), LONG_TTL)
+
+
 async def warm(app: Any) -> None:
     pool, cache = app.state.pool, app.state.v2
     await asyncio.gather(
         cache.get("graph", lambda: load_graph(pool), GRAPH_TTL),
-        cache.get("chain_top", lambda: load_chain_top(pool), LONG_TTL),
+        warm_chain(pool, cache),
         cache.get("patterns", lambda: load_patterns(pool), LONG_TTL),
         cache.get("repo_index", lambda: load_repo_index(pool), LONG_TTL / 3),
+        cache.get("wrapped", lambda: build_wrapped(pool, cache), SHORT_TTL),
         return_exceptions=True,
     )
