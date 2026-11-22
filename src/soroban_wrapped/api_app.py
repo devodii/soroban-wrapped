@@ -279,10 +279,8 @@ class ChainSnapshot(BaseModel):
 
 
 async def load_chain_top(pool: asyncpg.Pool) -> ChainSnapshot:
-    contract_rows, edge_rows = await asyncio.gather(
-        rows(pool, "v2_chain_top_contracts", 300),
-        rows(pool, "v2_chain_top_edges", 200),
-    )
+    contract_rows = await rows(pool, "v2_chain_top_contracts", 300)
+    edge_rows = await rows(pool, "v2_chain_top_edges", 200)
     return ChainSnapshot(
         contracts=[
             TopContract.model_validate({**r, "repos": r["repos"] or []})
@@ -439,8 +437,18 @@ async def graph(
             warming=True,
         )
     chain = await cache.get(
-        "chain_graph", lambda: load_chain_graph(pool, top), LONG_TTL
+        "chain_graph", lambda: load_chain_graph(pool, top), LONG_TTL, WARM_PATIENCE
     )
+    if chain is None:
+        return GraphResponse(
+            scope="chain",
+            nodes=[],
+            edges=[],
+            total_nodes=0,
+            total_edges=0,
+            truncated=False,
+            warming=True,
+        )
     nodes = [n for n in chain.nodes if network is None or n.network == network][:limit]
     kept = {n.id for n in nodes}
     return GraphResponse(
@@ -911,11 +919,15 @@ async def warm_chain(pool: asyncpg.Pool, cache: Cache) -> None:
 
 async def warm(app: Any) -> None:
     pool, cache = app.state.pool, app.state.v2
-    await asyncio.gather(
+    steps = [
         cache.get("graph", lambda: load_graph(pool), GRAPH_TTL),
-        warm_chain(pool, cache),
-        cache.get("patterns", lambda: load_patterns(pool), LONG_TTL),
         cache.get("repo_index", lambda: load_repo_index(pool), LONG_TTL / 3),
         cache.get("wrapped", lambda: build_wrapped(pool, cache), SHORT_TTL),
-        return_exceptions=True,
-    )
+        warm_chain(pool, cache),
+        cache.get("patterns", lambda: load_patterns(pool), LONG_TTL),
+    ]
+    for step in steps:
+        try:
+            await step
+        except Exception:
+            continue
