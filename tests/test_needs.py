@@ -16,4 +16,8 @@ def test_coverage_counts_full_tools_more_than_partial_ones():
 
 
 def test_titles_are_tokenised_without_filler_words():
-    assert tokenise("Add support for the Soroban fuzzing") == ["support", "soroban", "fuzzing"]
+    assert tokenise("Add support for the Soroban fuzzing") == [
+        "support",
+        "soroban",
+        "fuzzing",
+    ]
