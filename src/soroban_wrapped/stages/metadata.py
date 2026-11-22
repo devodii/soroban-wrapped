@@ -14,8 +14,8 @@ from soroban_wrapped.workflow import Stage
 
 log = logging.getLogger("soroban_wrapped")
 
-BATCH = 50
-CONCURRENCY = 4
+BATCH = 100
+CONCURRENCY = 8
 VALID_NAME = re.compile(r"^[\w.-]+/[\w.-]+$")
 FIELDS = """
   nameWithOwner url description stargazerCount forkCount isFork isArchived isTemplate
