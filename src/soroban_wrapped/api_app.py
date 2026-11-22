@@ -51,9 +51,9 @@ from soroban_wrapped.api_models import (
 )
 from soroban_wrapped.sql_loader import load_sql
 
-SHORT_TTL = 60.0
-GRAPH_TTL = 300.0
-LONG_TTL = 1800.0
+SHORT_TTL = 600.0
+GRAPH_TTL = 3600.0
+LONG_TTL = 14400.0
 FIXED_KINDS = {"proposal", "library", "bug_class"}
 CHAIN_NODES = 240
 WARM_PATIENCE = 2.5

@@ -61,7 +61,7 @@ OVERVIEW_QUERIES = [
     "top_edges",
     "network_days",
 ]
-REFRESH_SECONDS = 120
+REFRESH_SECONDS = 900
 
 
 async def one(pool: asyncpg.Pool, name: str, *args: Any) -> Any:
@@ -97,7 +97,7 @@ async def overview(pool: asyncpg.Pool, limit: int) -> dict[str, Any]:
 
 
 CACHE_DIR = ROOT / "out" / "cache"
-HEAVY = {"top_edges": 1800, "top_contracts": 1800, "patterns": 900, "counts": 300}
+HEAVY = {"top_edges": 14400, "top_contracts": 14400, "patterns": 7200, "counts": 1800}
 
 
 class Snapshots:
