@@ -9,7 +9,7 @@ from pathlib import Path
 import asyncpg
 
 from soroban_wrapped import checkpoints
-from soroban_wrapped.catalog import active_patterns
+from soroban_wrapped.catalog import Catalog, active_patterns
 from soroban_wrapped.config import get_settings
 from soroban_wrapped.extract import git
 from soroban_wrapped.extract.analyse import (
@@ -23,7 +23,7 @@ from soroban_wrapped.extract.analyse import (
 from soroban_wrapped.extract.matcher import compiled
 from soroban_wrapped.runner import Context, stage
 from soroban_wrapped.sql_loader import load_sql
-from soroban_wrapped.workflow import Stage
+from soroban_wrapped.workflow import Stage, Workflow
 
 log = logging.getLogger("soroban_wrapped")
 
@@ -31,10 +31,14 @@ MAX_PATCHED_COMMITS = 150
 
 
 async def read_history(
-    context: Context, root: Path, analysis: Analysis, patterns: list
+    workflow: Workflow,
+    catalog: Catalog,
+    root: Path,
+    analysis: Analysis,
+    patterns: list,
 ) -> None:
-    window = context.workflow.window
-    history = context.workflow.history
+    window = workflow.window
+    history = workflow.history
     if history.commits == "none":
         return
     commits = await git.commit_log(
@@ -42,7 +46,7 @@ async def read_history(
     )
     fix = compiled(history.fix_message)
     for commit in commits:
-        classes = classify_message(commit.message, context.catalog.bug_classes)
+        classes = classify_message(commit.message, catalog.bug_classes)
         analysis.bug_classes[commit.sha] = classes
         if fix.search(commit.message):
             analysis.fix_shas.add(commit.sha)
@@ -352,7 +356,9 @@ async def extract(context: Context, _: Stage) -> None:
                     patterns,
                 )
                 if analysis.is_soroban:
-                    await read_history(context, destination, analysis, patterns)
+                    await read_history(
+                        workflow, context.catalog, destination, analysis, patterns
+                    )
                 async with context.pool.acquire() as connection:
                     await store(connection, name, analysis, digest)
                 soroban += analysis.is_soroban

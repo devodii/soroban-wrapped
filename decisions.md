@@ -82,3 +82,9 @@ Decisions made while building, with the reason, so they can be challenged. Newes
 ## UI speed (2026-11-22)
 - The overview took over two minutes cold because counts, top edges, patterns and top contracts scan millions of rows. The api now runs the queries in parallel, serves a cached snapshot (refreshed in the background every 120 s, warmed at startup) and uses planner estimates for the four biggest row counts. Cached responses take about 10 ms. A cold start after a restart still takes about 35 s once.
 - Mainnet ledger days for the whole window are imported (324 days to 2026-11-20). Launched testnet for the same window and mainnet for 2026-11-21.
+
+## Extraction on actions runners (2026-11-22)
+- Local clone and parse ran at about 400 repos an hour on a 1 MB/s link, so 21k queued repos meant 53 hours. Runners have a fast link, so clone and parse moved there.
+- `extract-plan` publishes the todo list and the active patterns (seeds plus mined) to an orphan `queue` branch. The `extract` workflow splits the list into shards (index mod count so every shard gets a mix of sizes), each job clones and analyses its slice with the same code as the local stage and uploads one jsonl.gz of pydantic Analysis records.
+- The `harvest` stage (autopilot) downloads finished runs, stores each analysis with the same `store` function as the local stage, records clone failures as checkpoints, then deletes artifacts. Artifacts are only deleted after a successful import.
+- The local extract stage keeps running; both write through the same idempotent clear-and-insert, so overlap only wastes work.

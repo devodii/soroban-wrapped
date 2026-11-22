@@ -95,6 +95,20 @@ def main() -> None:
     )
     imported.add_argument("--dir", default="out/lake")
     imported.add_argument("--network", default="mainnet")
+    plan = commands.add_parser(
+        "extract-plan", help="publish the repos to scan on the queue branch"
+    )
+    plan.add_argument("--limit", type=int, default=0)
+    shard = commands.add_parser(
+        "extract-shard",
+        help="clone and analyse one slice of the queue (runs in actions)",
+    )
+    shard.add_argument("--targets", required=True)
+    shard.add_argument("--patterns", required=True)
+    shard.add_argument("--index", type=int, required=True)
+    shard.add_argument("--count", type=int, required=True)
+    shard.add_argument("--out", required=True)
+    shard.add_argument("--concurrency", type=int, default=24)
     rfps = commands.add_parser("rfps", help="write each tooling need as an rfp draft")
     rfps.add_argument("--out", default="out/rfps")
     rfps.add_argument("--min-score", type=float, default=0.0)
@@ -141,6 +155,25 @@ def main() -> None:
                         "autopilot crashed, restarting in 60s"
                     )
                     time.sleep(60)
+        case "extract-plan":
+            from soroban_wrapped.extract.plan import run_plan
+
+            asyncio.run(run_plan(args.limit))
+        case "extract-shard":
+            from pathlib import Path
+
+            from soroban_wrapped.extract.shard import run_shard
+
+            asyncio.run(
+                run_shard(
+                    Path(args.targets),
+                    Path(args.patterns),
+                    args.index,
+                    args.count,
+                    Path(args.out),
+                    args.concurrency,
+                )
+            )
         case "rfps":
             from soroban_wrapped.rfp_export import run_export as export_rfps
 

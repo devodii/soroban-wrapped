@@ -20,6 +20,7 @@ PERIODIC = [
     "sweep",
     "chain",
     "lake",
+    "harvest",
     "reanalyse",
     "mine",
     "score",

@@ -5,6 +5,7 @@ from soroban_wrapped.stages import (  # noqa: F401
     ecosystem,
     extract,
     graph,
+    harvest,
     history,
     lake,
     metadata,
