@@ -48,9 +48,16 @@ async def import_file(context: Context, path) -> int:
             )
             context.errors += 1
             return
-        async with gate, context.pool.acquire() as connection:
-            await store(connection, line.repo, line.analysis, line.digest)
-        stored += 1
+        try:
+            async with gate, context.pool.acquire() as connection:
+                await store(connection, line.repo, line.analysis, line.digest)
+            stored += 1
+        except Exception as error:
+            context.errors += 1
+            await checkpoints.put(
+                context.pool, "extract", line.repo, "failed", {}, str(error)[:200]
+            )
+            log.warning("could not store %s: %s", line.repo, str(error)[:160])
 
     await asyncio.gather(*(one(line) for line in lines))
     return stored
