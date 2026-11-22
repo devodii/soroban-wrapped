@@ -1,4 +1,6 @@
+import asyncio
 import json
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -43,40 +45,90 @@ def recall(found: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-async def overview(pool: asyncpg.Pool, limit: int) -> dict[str, Any]:
+OVERVIEW_QUERIES = [
+    "counts",
+    "stages",
+    "patterns",
+    "proposals",
+    "candidates",
+    "queries",
+    "networks",
+    "needs",
+    "top_contracts",
+    "top_edges",
+    "network_days",
+]
+REFRESH_SECONDS = 120
+
+
+async def one(pool: asyncpg.Pool, name: str, *args: Any) -> Any:
     async with pool.acquire() as connection:
-        proposals = records(await connection.fetch(load_sql("overview_proposals")))
-        return {
-            "counts": dict(await connection.fetchrow(load_sql("overview_counts"))),
-            "stages": records(await connection.fetch(load_sql("overview_stages"))),
-            "repos": records(await connection.fetch(load_sql("overview_repos"), limit)),
-            "patterns": records(await connection.fetch(load_sql("overview_patterns"))),
-            "proposals": proposals,
-            "candidates": records(
-                await connection.fetch(load_sql("overview_candidates"))
-            ),
-            "queries": records(await connection.fetch(load_sql("overview_queries"))),
-            "networks": records(await connection.fetch(load_sql("overview_networks"))),
-            "needs": records(await connection.fetch(load_sql("overview_needs"))),
-            "top_contracts": records(
-                await connection.fetch(load_sql("overview_top_contracts"))
-            ),
-            "top_edges": records(
-                await connection.fetch(load_sql("overview_top_edges"))
-            ),
-            "network_days": records(
-                await connection.fetch(load_sql("overview_network_days"))
-            ),
-            "recall": recall(
-                dict(await connection.fetchrow(load_sql("overview_recall")))
-            ),
-        }
+        rows = await connection.fetch(load_sql(f"overview_{name}"), *args)
+    return rows
+
+
+async def overview(pool: asyncpg.Pool, limit: int) -> dict[str, Any]:
+    names = OVERVIEW_QUERIES
+    results = await asyncio.gather(
+        *[one(pool, name) for name in names],
+        one(pool, "repos", limit),
+        one(pool, "recall"),
+    )
+    data: dict[str, Any] = {
+        name: records(rows) for name, rows in zip(names, results, strict=False)
+    }
+    data["counts"] = data["counts"][0]
+    data["repos"] = records(results[-2])
+    data["recall"] = recall(dict(results[-1][0]))
+    return data
+
+
+class Snapshots:
+    def __init__(self, pool: asyncpg.Pool) -> None:
+        self.pool = pool
+        self.values: dict[str, tuple[float, Any]] = {}
+        self.busy: dict[str, asyncio.Task[Any]] = {}
+
+    async def refresh(self, key: str, make: Any) -> Any:
+        value = json.loads(json.dumps(await make(), default=str))
+        self.values[key] = (time.monotonic(), value)
+        self.busy.pop(key, None)
+        return value
+
+    async def get(self, key: str, make: Any) -> Any:
+        cached = self.values.get(key)
+        if cached is None:
+            task = self.busy.get(key) or self.busy.setdefault(
+                key, asyncio.create_task(self.refresh(key, make))
+            )
+            return await task
+        if time.monotonic() - cached[0] > REFRESH_SECONDS and key not in self.busy:
+            self.busy[key] = asyncio.create_task(self.refresh(key, make))
+        return cached[1]
+
+
+async def graph(pool: asyncpg.Pool) -> dict[str, Any]:
+    async with pool.acquire() as a, pool.acquire() as b:
+        nodes, edges = await asyncio.gather(
+            a.fetch(load_sql("graph_nodes")), b.fetch(load_sql("graph_edges"))
+        )
+    return {"nodes": records(nodes), "edges": records(edges)}
 
 
 def create_app() -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.pool = await open_pool()
+        app.state.snapshots = Snapshots(app.state.pool)
+        for limit in (500,):
+            asyncio.create_task(
+                app.state.snapshots.get(
+                    f"overview:{limit}", lambda: overview(app.state.pool, limit)
+                )
+            )
+        asyncio.create_task(
+            app.state.snapshots.get("graph", lambda: graph(app.state.pool))
+        )
         yield
         await app.state.pool.close()
 
@@ -88,8 +140,12 @@ def create_app() -> FastAPI:
 
     @app.get("/api/overview")
     async def get_overview(request: Request, limit: int = 500) -> JSONResponse:
-        data = await overview(request.app.state.pool, min(limit, 5000))
-        return JSONResponse(json.loads(json.dumps(data, default=str)))
+        size = min(limit, 5000)
+        pool = request.app.state.pool
+        data = await request.app.state.snapshots.get(
+            f"overview:{size}", lambda: overview(pool, size)
+        )
+        return JSONResponse(data)
 
     @app.get("/report")
     async def report() -> FileResponse:
@@ -108,12 +164,9 @@ def create_app() -> FastAPI:
 
     @app.get("/api/graph")
     async def get_graph(request: Request) -> JSONResponse:
-        async with request.app.state.pool.acquire() as connection:
-            data = {
-                "nodes": records(await connection.fetch(load_sql("graph_nodes"))),
-                "edges": records(await connection.fetch(load_sql("graph_edges"))),
-            }
-        return JSONResponse(json.loads(json.dumps(data, default=str)))
+        pool = request.app.state.pool
+        data = await request.app.state.snapshots.get("graph", lambda: graph(pool))
+        return JSONResponse(data)
 
     @app.get("/api/comments")
     async def list_comments(

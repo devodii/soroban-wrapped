@@ -78,3 +78,7 @@ Decisions made while building, with the reason, so they can be challenged. Newes
 ## Open for the owner
 - Approve the full-year on-chain run on GitHub Actions (or choose an AWS spot VM or BigQuery instead).
 - Add the third GitHub token to `.env`.
+
+## UI speed (2026-11-22)
+- The overview took over two minutes cold because counts, top edges, patterns and top contracts scan millions of rows. The api now runs the queries in parallel, serves a cached snapshot (refreshed in the background every 120 s, warmed at startup) and uses planner estimates for the four biggest row counts. Cached responses take about 10 ms. A cold start after a restart still takes about 35 s once.
+- Mainnet ledger days for the whole window are imported (324 days to 2026-11-20). Launched testnet for the same window and mainnet for 2026-11-21.
