@@ -161,6 +161,7 @@ class Accept(BaseModel):
     max_mined_patterns: int = 40
     queries: Literal["off", "auto"] = "auto"
     min_topic_repos: int = 15
+    min_topic_precision: float = 0.15
 
 
 class NeedWeights(BaseModel):
@@ -180,7 +181,7 @@ class Needs(BaseModel):
     min_doc_rank: float = 0.25
     evidence_per_kind: int = 40
     min_ngram_owners: int = 5
-    top_mined: int = 30
+    top_mined: int = 120
     cue_words: list[str] = Field(default_factory=list)
     noise_title: str = "^$never^"
     weights: NeedWeights = Field(default_factory=NeedWeights)

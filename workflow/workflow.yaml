@@ -149,7 +149,7 @@ improve:
     min_doc_rank: 0.25
     evidence_per_kind: 40
     min_ngram_owners: 4
-    top_mined: 30
+    top_mined: 120
     cue_words: [missing, "no way", cannot, "can't", unable, "doesn't work", "does not work", "not working", broken, fails, failing, workaround, "how to", "how do", "would be nice", wish, lack, lacking, limitation, painful, annoying, confusing, unclear, outdated, "hard to", difficult, impossible, "not possible", "not supported", unsupported, "no support", "is there a way", "feature request", "can we", "any plans", "should support", "need a way", "need to be able", "wasting", tedious, boilerplate, manual, manually, "every time", repetitive]
     noise_title: '^(feat|chore|docs|ci|refactor|test|build|style|perf|release|bump|merge)(\(.*\))?!?:'
     weights: {pain: 1.2, owners: 0.5, relevance: 0.6, official: 0.7, custom: 0.7, recency: 0.4, engagement: 0.5, covered: -0.6}
@@ -171,6 +171,7 @@ improve:
     max_mined_patterns: 40
     queries: auto
     min_topic_repos: 15
+    min_topic_precision: 0.15
 
 ecosystem:
   batch: 8
