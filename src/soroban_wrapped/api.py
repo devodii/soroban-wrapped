@@ -65,9 +65,18 @@ REFRESH_SECONDS = 120
 
 
 async def one(pool: asyncpg.Pool, name: str, *args: Any) -> Any:
-    async with pool.acquire() as connection:
-        rows = await connection.fetch(load_sql(f"overview_{name}"), *args)
-    return rows
+    async def fetch() -> list[dict[str, Any]]:
+        async with pool.acquire() as connection:
+            return records(await connection.fetch(load_sql(f"overview_{name}"), *args))
+
+    if name in HEAVY and SNAPSHOTS is not None:
+        return await SNAPSHOTS.get(
+            f"part:{name}",
+            fetch,
+            HEAVY[name],
+            fallback=[{}] if name == "counts" else [],
+        )
+    return await fetch()
 
 
 async def overview(pool: asyncpg.Pool, limit: int) -> dict[str, Any]:
@@ -78,7 +87,8 @@ async def overview(pool: asyncpg.Pool, limit: int) -> dict[str, Any]:
         one(pool, "recall"),
     )
     data: dict[str, Any] = {
-        name: records(rows) for name, rows in zip(names, results, strict=False)
+        name: records(rows) if rows and not isinstance(rows[0], dict) else rows
+        for name, rows in zip(names, results, strict=False)
     }
     data["counts"] = data["counts"][0]
     data["repos"] = records(results[-2])
@@ -86,28 +96,56 @@ async def overview(pool: asyncpg.Pool, limit: int) -> dict[str, Any]:
     return data
 
 
+CACHE_DIR = ROOT / "out" / "cache"
+HEAVY = {"top_edges": 1800, "top_contracts": 1800, "patterns": 900, "counts": 300}
+
+
 class Snapshots:
     def __init__(self, pool: asyncpg.Pool) -> None:
         self.pool = pool
         self.values: dict[str, tuple[float, Any]] = {}
         self.busy: dict[str, asyncio.Task[Any]] = {}
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+    def file(self, key: str) -> Path:
+        return CACHE_DIR / (key.replace(":", "_").replace("/", "_") + ".json")
 
     async def refresh(self, key: str, make: Any) -> Any:
-        value = json.loads(json.dumps(await make(), default=str))
-        self.values[key] = (time.monotonic(), value)
-        self.busy.pop(key, None)
-        return value
+        try:
+            value = json.loads(json.dumps(await make(), default=str))
+            self.values[key] = (time.monotonic(), value)
+            self.file(key).write_text(json.dumps(value))
+            return value
+        finally:
+            self.busy.pop(key, None)
 
-    async def get(self, key: str, make: Any) -> Any:
+    def start(self, key: str, make: Any) -> asyncio.Task[Any]:
+        task = self.busy.get(key)
+        if task is None:
+            task = self.busy[key] = asyncio.create_task(self.refresh(key, make))
+        return task
+
+    async def get(
+        self, key: str, make: Any, ttl: int = REFRESH_SECONDS, fallback: Any = None
+    ) -> Any:
         cached = self.values.get(key)
         if cached is None:
-            task = self.busy.get(key) or self.busy.setdefault(
-                key, asyncio.create_task(self.refresh(key, make))
-            )
+            saved = self.file(key)
+            if saved.exists():
+                value = json.loads(saved.read_text())
+                self.values[key] = (0.0, value)
+                self.start(key, make)
+                return value
+            task = self.start(key, make)
+            if fallback is not None:
+                return fallback
             return await task
-        if time.monotonic() - cached[0] > REFRESH_SECONDS and key not in self.busy:
-            self.busy[key] = asyncio.create_task(self.refresh(key, make))
+        if time.monotonic() - cached[0] > ttl:
+            self.start(key, make)
         return cached[1]
+
+
+SNAPSHOTS: Snapshots | None = None
 
 
 async def graph(pool: asyncpg.Pool) -> dict[str, Any]:
@@ -123,6 +161,8 @@ def create_app() -> FastAPI:
     async def lifespan(app: FastAPI):
         app.state.pool = await open_pool()
         app.state.snapshots = Snapshots(app.state.pool)
+        global SNAPSHOTS
+        SNAPSHOTS = app.state.snapshots
         app.state.v2 = api_app.Cache()
         asyncio.create_task(api_app.warm(app))
         asyncio.create_task(
