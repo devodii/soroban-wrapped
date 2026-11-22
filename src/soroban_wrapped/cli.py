@@ -74,6 +74,9 @@ def main() -> None:
     serve = commands.add_parser("serve", help="serve the live research ui and api")
     serve.add_argument("--port", type=int, default=8787)
     serve.add_argument("--host", default="127.0.0.1")
+    commands.add_parser(
+        "openapi", help="write the api schema the web app generates its types from"
+    )
     export = commands.add_parser("export", help="dump the overview to json and html")
     export.add_argument("--out", default="out")
     commands.add_parser(
@@ -187,6 +190,10 @@ def main() -> None:
                 port=args.port,
                 log_level="warning",
             )
+        case "openapi":
+            from soroban_wrapped.openapi import write as write_openapi
+
+            write_openapi()
         case "export":
             from soroban_wrapped.export import run_export
 
