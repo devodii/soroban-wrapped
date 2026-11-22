@@ -1,3 +1,4 @@
+import { ArrowDown, ArrowUp } from 'lucide-react'
 import {
   type ColumnDef,
   type SortingState,
