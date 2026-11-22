@@ -13,6 +13,17 @@ WHERE
             AND c.attempts >= 3
     )
 ORDER BY
+    CASE
+        WHEN EXISTS (
+            SELECT 1 FROM unnest(discovered_via) AS v
+            WHERE v NOT LIKE 'search:topic:%'
+        ) THEN 0
+        WHEN
+            full_name || ' ' || coalesce(description, '') || ' ' || array_to_string(topics, ' ')
+            ~* 'stellar|soroban|horizon|freighter|albedo|xlm|sep-?[0-9]+|lumens?'
+            THEN 1
+        ELSE 2
+    END ASC,
     coalesce((SELECT bool_and(v LIKE 'owner:%') FROM unnest(discovered_via) AS v), FALSE) ASC,
     is_soroban DESC,
     stars DESC
