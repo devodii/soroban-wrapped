@@ -449,6 +449,9 @@ async def promote_patterns(context: Context) -> int:
     return len(rows)
 
 
+MIN_EVALUATED = 20
+
+
 async def mine_queries(context: Context) -> int:
     cfg = context.workflow.improve.mine
     rows = await context.pool.fetch(load_sql("mine_topics"), cfg.min_topic_repos)
@@ -457,13 +460,19 @@ async def mine_queries(context: Context) -> int:
         + context.workflow.discover.code_queries
     )
     floor = context.workflow.improve.accept.min_topic_precision
-    generic = [r["topic"] for r in rows if r["precision"] < floor]
+    generic = [
+        r["topic"]
+        for r in rows
+        if r["evaluated"] >= MIN_EVALUATED and r["precision"] < floor
+    ]
     if generic:
         await context.pool.execute(load_sql("reject_query_candidates"), generic)
     fresh = [
         r
         for r in rows
-        if r["precision"] >= floor and f"topic:{r['topic']}" not in queries
+        if r["precision"] is not None
+        and r["precision"] >= floor
+        and f"topic:{r['topic']}" not in queries
     ]
     for row in fresh:
         await context.pool.execute(
