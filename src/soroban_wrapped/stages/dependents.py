@@ -3,6 +3,7 @@ import html
 import logging
 import re
 
+import asyncpg
 import httpx
 from pydantic import BaseModel
 
@@ -77,15 +78,18 @@ async def crawl(context: Context, root: str, package: Package) -> int:
     pages = saved.cursor.get("pages", 0) if saved else 0
     while url:
         page = await fetch(context, url)
-        names = list(dict.fromkeys(ROW.findall(page)))
+        names = sorted(set(ROW.findall(page)))
         if names:
-            await context.pool.executemany(
-                load_sql("upsert_discovered"),
-                [
-                    (n, f"https://github.com/{n}", n.split("/")[0], [via], [])
-                    for n in names
-                ],
-            )
+            rows = [
+                (n, f"https://github.com/{n}", n.split("/")[0], [via], [])
+                for n in names
+            ]
+            for attempt in range(5):
+                try:
+                    await context.pool.executemany(load_sql("upsert_discovered"), rows)
+                    break
+                except asyncpg.DeadlockDetectedError:
+                    await asyncio.sleep(1 + attempt)
             stored += len(names)
         pages += 1
         match = NEXT.search(page)
