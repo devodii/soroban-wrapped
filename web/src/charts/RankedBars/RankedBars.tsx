@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import './RankedBars.scss'
 
@@ -8,7 +9,9 @@ export interface RankedRow {
 }
 
 const ROW_HEIGHT = 34
+const NARROW = '(max-width: 40rem)'
 const LABEL_WIDTH = 236
+const NARROW_LABEL_WIDTH = 104
 
 export function RankedBars({
   rows,
@@ -21,6 +24,15 @@ export function RankedBars({
   active?: string | null
   format?: (value: number) => string
 }) {
+  const narrow = React.useSyncExternalStore(
+    (listener) => {
+      const query = matchMedia(NARROW)
+      query.addEventListener('change', listener)
+      return () => query.removeEventListener('change', listener)
+    },
+    () => matchMedia(NARROW).matches,
+  )
+  const limit = narrow ? 14 : 34
   return (
     <div className="sw-rankedbars">
       <ResponsiveContainer width="100%" height={rows.length * ROW_HEIGHT}>
@@ -34,11 +46,11 @@ export function RankedBars({
           <YAxis
             type="category"
             dataKey="label"
-            width={LABEL_WIDTH}
+            width={narrow ? NARROW_LABEL_WIDTH : LABEL_WIDTH}
             tickLine={false}
             axisLine={false}
             tickFormatter={(label: string) =>
-              label.length > 34 ? `${label.slice(0, 33)}…` : label
+              label.length > limit ? `${label.slice(0, limit - 1)}…` : label
             }
           />
           <Bar
