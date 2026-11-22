@@ -13,13 +13,13 @@ log = logging.getLogger("soroban_wrapped")
 FOLLOWED = {
     "metadata": "metadata",
     "ecosystem": "ecosystem",
-    "clone": "clone",
     "history": "history",
 }
 PERIODIC = [
     "sweep",
     "chain",
     "lake",
+    "dispatch",
     "harvest",
     "reanalyse",
     "mine",

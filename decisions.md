@@ -99,3 +99,5 @@ Decisions made while building, with the reason, so they can be challenged. Newes
 - **The only write the app does is a note** on a repo, proposal or need, into the existing `comments` table.
 - **Packages over hand-rolled code**: base-ui (drawer, tabs, tooltip, slider), cmdk, recharts, prism-react-renderer, react-markdown, motion, TanStack Query and Table, moment. Design tokens come from hackproof and live only in `web/src/styles/_tokens.scss`. Storybook (`pnpm storybook`) holds the primitives and sections.
 - **Known gap:** the time scrubber filters repos by last push, not contracts by deploy date, because the data has no per-contract deployment day.
+- The `dispatch` stage keeps extraction self-driving: when no extract run is active, every finished run is imported, and at least 200 repos are waiting, it publishes the queue and launches the workflow (about 250 repos per shard, 100 shards at most). The local clone follower was removed from the autopilot because it competed with artifact downloads for the one slow link.
+- Harvest downloads artifacts one at a time and skips ones already on disk, so a dropped connection resumes.

@@ -28,7 +28,7 @@ async def git(*args: str, cwd: Path) -> str:
     return out.decode().strip()
 
 
-async def run_plan(limit: int) -> None:
+async def run_plan(limit: int) -> int:
     workflow = load_workflow()
     catalog = load_catalog(workflow)
     pool = await open_pool(2)
@@ -71,4 +71,4 @@ async def run_plan(limit: int) -> None:
         )
         await git("push", "-q", "-f", remote, "queue", cwd=root)
     log.info("queued %s repos on the queue branch", len(names))
-    print(len(names))
+    return len(names)

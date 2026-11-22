@@ -161,7 +161,7 @@ def main() -> None:
         case "extract-plan":
             from soroban_wrapped.extract.plan import run_plan
 
-            asyncio.run(run_plan(args.limit))
+            print(asyncio.run(run_plan(args.limit)))
         case "extract-shard":
             from pathlib import Path
 

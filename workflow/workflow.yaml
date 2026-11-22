@@ -192,7 +192,8 @@ stages:
   - {id: history, uses: github.history, needs: [clone]}
   - {id: chain, uses: chain.state, needs: [clone]}
   - {id: lake, uses: chain.lake, needs: [chain]}
-  - {id: harvest, uses: git.harvest, needs: [clone]}
+  - {id: dispatch, uses: git.dispatch, needs: [metadata]}
+  - {id: harvest, uses: git.harvest, needs: [dispatch]}
   - {id: sweep, uses: github.sweep, needs: [clone]}
   - {id: mine, uses: catalog.mine, needs: [clone, history, chain]}
   - {id: reanalyse, uses: catalog.reanalyse, needs: [clone]}
