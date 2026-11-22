@@ -26,9 +26,16 @@ def read_lines(path):
             yield ShardLine.model_validate_json(text)
 
 
+IMPORT_WORKERS = 8
+
+
 async def import_file(context: Context, path) -> int:
+    lines = await asyncio.to_thread(lambda: list(read_lines(path)))
+    gate = asyncio.Semaphore(IMPORT_WORKERS)
     stored = 0
-    for line in await asyncio.to_thread(lambda: list(read_lines(path))):
+
+    async def one(line: ShardLine) -> None:
+        nonlocal stored
         if line.analysis is None:
             await checkpoints.put(
                 context.pool,
@@ -39,10 +46,12 @@ async def import_file(context: Context, path) -> int:
                 line.error or "",
             )
             context.errors += 1
-            continue
-        async with context.pool.acquire() as connection:
+            return
+        async with gate, context.pool.acquire() as connection:
             await store(connection, line.repo, line.analysis, line.digest)
         stored += 1
+
+    await asyncio.gather(*(one(line) for line in lines))
     return stored
 
 
@@ -74,6 +83,7 @@ async def harvest(context: Context, _: Stage) -> None:
         if saved and saved.done:
             continue
         target = RUNS_DIR / run_id
+        shutil.rmtree(target, ignore_errors=True)
         try:
             await gh("run", "download", run_id, "-D", str(target))
         except RuntimeError as error:
