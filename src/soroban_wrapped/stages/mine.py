@@ -456,13 +456,21 @@ async def mine_queries(context: Context) -> int:
         context.workflow.discover.repository_queries
         + context.workflow.discover.code_queries
     )
-    fresh = [r for r in rows if f"topic:{r['topic']}" not in queries]
+    floor = context.workflow.improve.accept.min_topic_precision
+    generic = [r["topic"] for r in rows if r["precision"] < floor]
+    if generic:
+        await context.pool.execute(load_sql("reject_query_candidates"), generic)
+    fresh = [
+        r
+        for r in rows
+        if r["precision"] >= floor and f"topic:{r['topic']}" not in queries
+    ]
     for row in fresh:
         await context.pool.execute(
             load_sql("upsert_candidate"),
             f"query:topic:{row['topic']}",
             "query",
-            f"Search `topic:{row['topic']}`: {row['repos']} confirmed soroban repos carry it",
+            f"Search `topic:{row['topic']}`: {row['repos']} of {row['carriers']} repos carrying it are soroban",
             row["topic"],
             row["repos"],
             row["repos"],

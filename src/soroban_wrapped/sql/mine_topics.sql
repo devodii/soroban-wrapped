@@ -1,10 +1,19 @@
+WITH topic_repos AS (
+    SELECT
+        t.topic,
+        count(*) AS carriers,
+        count(*) FILTER (WHERE repos.is_soroban) AS soroban
+    FROM repos
+    CROSS JOIN LATERAL unnest(repos.topics) AS t (topic)
+    GROUP BY t.topic
+)
+
 SELECT
     topic,
-    count(*) AS repos
-FROM repos
-CROSS JOIN LATERAL unnest(topics) AS topic
-WHERE is_soroban
-GROUP BY topic
-HAVING count(*) >= $1
-ORDER BY count(*) DESC
-LIMIT 60
+    soroban AS repos,
+    carriers,
+    soroban::double precision / carriers AS precision
+FROM topic_repos
+WHERE soroban >= $1
+ORDER BY soroban DESC
+LIMIT 120
