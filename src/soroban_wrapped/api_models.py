@@ -429,3 +429,19 @@ class PatternList(BaseModel):
 
 
 Summary.model_rebuild()
+
+
+class Comment(BaseModel):
+    id: int
+    author: str
+    body: str
+    created_at: datetime
+
+
+class CommentCreate(BaseModel):
+    target_kind: Literal[
+        "repo", "proposal", "pattern", "contract", "node", "need", "tool"
+    ]
+    target_id: str = Field(min_length=1, max_length=300)
+    author: str = Field(default="anonymous", max_length=80)
+    body: str = Field(min_length=1, max_length=4000)

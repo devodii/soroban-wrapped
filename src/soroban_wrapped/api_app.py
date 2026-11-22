@@ -15,6 +15,8 @@ from soroban_wrapped.api_models import (
     ChainDay,
     ChainTop,
     CodeSample,
+    Comment,
+    CommentCreate,
     ContractDay,
     ContractDetail,
     ContractRef,
@@ -845,6 +847,25 @@ async def search(
 
 def needle_key(text: str) -> str:
     return text.lower()
+
+
+@router.get("/comments", response_model=list[Comment])
+async def comments(request: Request, target_kind: str, target_id: str) -> list[Comment]:
+    found = await rows(pool_of(request), "comments_list", target_kind, target_id)
+    return [Comment.model_validate(r) for r in found]
+
+
+@router.post("/comments", response_model=Comment)
+async def add_comment(request: Request, comment: CommentCreate) -> Comment:
+    found = await rows(
+        pool_of(request),
+        "comments_add",
+        comment.target_kind,
+        comment.target_id,
+        comment.author,
+        comment.body,
+    )
+    return Comment.model_validate(found[0])
 
 
 async def warm(app: Any) -> None:
