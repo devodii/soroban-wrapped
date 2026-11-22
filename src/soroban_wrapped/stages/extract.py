@@ -277,11 +277,13 @@ async def store(
                     for f in c.files
                 ],
             )
+            known = {c.sha for c in analysis.commits}
             await connection.executemany(
                 load_sql("ins_commit_touch"),
                 [
                     (repo, t.sha, t.pattern, t.added, t.removed)
                     for t in analysis.touches
+                    if t.sha in known
                 ],
             )
             people: dict[str, list] = {}

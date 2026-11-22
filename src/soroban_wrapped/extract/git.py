@@ -246,7 +246,7 @@ async def rust_patches(root: Path, shas: list[str]) -> dict[str, list[str]]:
         )
         for record in out.decode(errors="replace").split(RECORD):
             sha, _, body = record.partition("\n")
-            if not sha.strip():
+            if sha.strip() not in chunk:
                 continue
             lines = [
                 line
