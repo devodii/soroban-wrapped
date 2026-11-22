@@ -20,6 +20,7 @@ ANALYTICS = ["reanalyse", "mine", "score", "needs", "gaps", "graph"]
 PERIOD = 600
 ANALYTICS_PERIOD = 10800
 RERUN_SECONDS = 3600
+DEPENDENTS_SECONDS = 21600
 IDLE_PAUSE = 45
 MAX_BACKOFF = 600
 POOL_SIZE = 40
@@ -67,6 +68,16 @@ async def keep_discovering(
                 await asyncio.sleep(30)
         else:
             await asyncio.sleep(1)
+
+
+async def keep_dependents(context: Context, quiet: asyncio.Event) -> None:
+    failures: dict[str, int] = {}
+    while True:
+        await safely(context, "dependents", failures)
+        for _ in range(DEPENDENTS_SECONDS // 30):
+            if quiet.is_set():
+                return
+            await asyncio.sleep(30)
 
 
 async def follow(
@@ -141,6 +152,7 @@ async def drive(force: bool = False) -> None:
             asyncio.create_task(keep_discovering(context, discovered, quiet)),
             asyncio.create_task(watch_quiet(context, discovered, quiet)),
             asyncio.create_task(periodic(context, quiet)),
+            asyncio.create_task(keep_dependents(context, quiet)),
             *(
                 asyncio.create_task(follow(context, stage_id, key, quiet))
                 for stage_id, key in FOLLOWED.items()

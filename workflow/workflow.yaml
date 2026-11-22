@@ -48,6 +48,11 @@ discover:
     - "#[contract] language:Rust"
     - "#[contracttype] language:Rust"
     - "extend_ttl language:Rust"
+  dependents:
+    - {repo: stellar/rs-soroban-sdk}
+    - {repo: OpenZeppelin/stellar-contracts}
+    - {repo: stellar/stellar-cli}
+    - {repo: stellar/js-stellar-sdk, packages: ["@stellar/stellar-sdk", "stellar-sdk", "@stellar/stellar-base"]}
   exclude_owners: []
   exclude_repos: []
   min_window_commits: 0
@@ -195,6 +200,7 @@ stages:
   - {id: lake, uses: chain.lake, needs: [chain]}
   - {id: dispatch, uses: git.dispatch, needs: [metadata]}
   - {id: harvest, uses: git.harvest, needs: [dispatch]}
+  - {id: dependents, uses: github.dependents, needs: [catalog]}
   - {id: sweep, uses: github.sweep, needs: [clone]}
   - {id: mine, uses: catalog.mine, needs: [clone, history, chain]}
   - {id: reanalyse, uses: catalog.reanalyse, needs: [clone]}

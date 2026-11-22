@@ -39,10 +39,16 @@ class CratesIo(BaseModel):
     reverse_dependencies: bool = True
 
 
+class DependentsSource(BaseModel):
+    repo: str
+    packages: list[str] = []
+
+
 class Discover(BaseModel):
     crates_io: CratesIo
     repository_queries: list[str]
     code_queries: list[str]
+    dependents: list[DependentsSource] = []
     exclude_owners: list[str] = []
     exclude_repos: list[str] = []
     min_window_commits: int = 0
