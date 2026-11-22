@@ -15,21 +15,10 @@ FOLLOWED = {
     "ecosystem": "ecosystem",
     "history": "history",
 }
-PERIODIC = [
-    "sweep",
-    "chain",
-    "lake",
-    "dispatch",
-    "harvest",
-    "reanalyse",
-    "mine",
-    "score",
-    "needs",
-    "gaps",
-    "graph",
-    "report",
-]
-PERIOD = 1200
+PERIODIC = ["sweep", "chain", "lake", "dispatch", "harvest", "report"]
+ANALYTICS = ["reanalyse", "mine", "score", "needs", "gaps", "graph"]
+PERIOD = 600
+ANALYTICS_PERIOD = 10800
 RERUN_SECONDS = 3600
 IDLE_PAUSE = 45
 MAX_BACKOFF = 600
@@ -106,12 +95,17 @@ async def follow(
 async def periodic(context: Context, quiet: asyncio.Event) -> None:
     failures: dict[str, int] = {}
     last = 0.0
+    last_analytics = time.monotonic()
     while True:
-        due = time.monotonic() - last > PERIOD
-        if due or quiet.is_set():
+        now = time.monotonic()
+        if now - last > PERIOD or quiet.is_set():
             for stage_id in PERIODIC:
                 await safely(context, stage_id, failures)
             last = time.monotonic()
+        if time.monotonic() - last_analytics > ANALYTICS_PERIOD or quiet.is_set():
+            for stage_id in ANALYTICS:
+                await safely(context, stage_id, failures)
+            last_analytics = time.monotonic()
             if quiet.is_set():
                 return
         await asyncio.sleep(IDLE_PAUSE)
