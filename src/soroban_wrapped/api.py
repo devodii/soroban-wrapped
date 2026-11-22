@@ -7,14 +7,17 @@ from typing import Any
 
 import asyncpg
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
+from soroban_wrapped import api_app
 from soroban_wrapped.config import ROOT
 from soroban_wrapped.database import open_pool
 from soroban_wrapped.sql_loader import load_sql
 
 UI_DIR = Path(__file__).with_name("ui")
+WEB_DIST = ROOT / "web" / "dist"
 MIN_OVERLAP = 30
 
 
@@ -120,6 +123,8 @@ def create_app() -> FastAPI:
     async def lifespan(app: FastAPI):
         app.state.pool = await open_pool()
         app.state.snapshots = Snapshots(app.state.pool)
+        app.state.v2 = api_app.Cache()
+        asyncio.create_task(api_app.warm(app))
         asyncio.create_task(
             app.state.snapshots.get(
                 "overview:500", lambda: overview(app.state.pool, 500)
@@ -132,6 +137,19 @@ def create_app() -> FastAPI:
         await app.state.pool.close()
 
     app = FastAPI(title="soroban-wrapped", lifespan=lifespan)
+    app.add_middleware(GZipMiddleware, minimum_size=1024)
+    app.include_router(api_app.router)
+
+    @app.get("/app", include_in_schema=False)
+    @app.get("/app/{path:path}", include_in_schema=False)
+    async def web_app(path: str = "") -> FileResponse:
+        index = WEB_DIST / "index.html"
+        if not index.exists():
+            raise HTTPException(404, "web app is not built, run pnpm build in web")
+        target = (WEB_DIST / path).resolve()
+        if path and target.is_file() and WEB_DIST.resolve() in target.parents:
+            return FileResponse(target)
+        return FileResponse(index)
 
     @app.get("/")
     async def page() -> FileResponse:
