@@ -8,7 +8,7 @@ export interface RankedRow {
 }
 
 const ROW_HEIGHT = 34
-const LABEL_WIDTH = 176
+const LABEL_WIDTH = 236
 
 export function RankedBars({
   rows,
@@ -38,7 +38,7 @@ export function RankedBars({
             tickLine={false}
             axisLine={false}
             tickFormatter={(label: string) =>
-              label.length > 26 ? `${label.slice(0, 25)}…` : label
+              label.length > 34 ? `${label.slice(0, 33)}…` : label
             }
           />
           <Bar
@@ -47,7 +47,10 @@ export function RankedBars({
             background={{ fill: 'var(--track)', radius: 6 }}
             isAnimationActive={false}
             cursor={onSelect ? 'pointer' : undefined}
-            onClick={(row) => onSelect?.((row as unknown as RankedRow).id)}
+            onClick={(_, index) => {
+              const row = rows[index]
+              if (row) onSelect?.(row.id)
+            }}
           >
             {rows.map((row, index) => (
               <Cell

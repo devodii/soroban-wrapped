@@ -224,6 +224,13 @@ $dark: (
   white-space: nowrap;
 }
 
+@mixin overlay {
+  background: color-mix(in oklab, var(--card) 90%, transparent);
+  border: 1px solid var(--tile-border);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+}
+
 @mixin glass {
   background: var(--tile);
   border: 1px solid var(--tile-border);

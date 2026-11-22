@@ -1,3 +1,5 @@
+@use '../../styles/tokens' as t;
+
 .sw-card-card {
   display: block;
   border: 1px solid var(--border);
@@ -13,10 +15,7 @@
 }
 
 .sw-card-glass {
-  background: var(--tile);
-  border-color: var(--tile-border);
-  backdrop-filter: blur(14px) saturate(1.2);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  @include t.overlay;
 }
 
 .sw-card-accent {
