@@ -54,3 +54,37 @@ jobs:
       - name: The schema files and the database agree
         run: uv run soroban-wrapped schema verify
       - run: uv run pytest
+      - name: The openapi schema the web app generates its types from is current
+        run: |
+          uv run soroban-wrapped openapi
+          git diff --exit-code -- web/openapi.json || {
+            echo "::error::The API changed but web/openapi.json did not. Run 'pnpm types' in web and commit the result."
+            exit 1
+          }
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: The generated api types are current
+        run: |
+          pnpm exec openapi-typescript openapi.json -o src/lib/api-schema.ts --root-types --root-types-no-schema-prefix
+          git diff --exit-code -- src/lib/api-schema.ts || {
+            echo "::error::web/openapi.json changed but the generated types did not. Run 'pnpm types' and commit the result."
+            exit 1
+          }
+      - run: pnpm format:check
+      - run: pnpm exec tsc --noEmit
+      - run: pnpm build
