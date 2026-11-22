@@ -24,6 +24,8 @@
 \i tables/tooling_needs.sql
 \i tables/need_evidence.sql
 \i tables/tool_catalog.sql
+\i tables/need_tool_gaps.sql
+\i tables/need_tool_verdicts.sql
 \i tables/need_tools.sql
 \i tables/network_days.sql
 \i tables/pattern_matches.sql
@@ -40,6 +42,7 @@
 \i tables/repo_documents.sql
 \i tables/repo_network_signals.sql
 \i tables/stage_runs.sql
+\i tables/tool_snapshots.sql
 \i tables/type_defs.sql
 \i indexes/catalog_candidates_status.sql
 \i indexes/checkpoints_status.sql
