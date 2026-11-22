@@ -83,17 +83,28 @@ async def harvest(context: Context, _: Stage) -> None:
         if saved and saved.done:
             continue
         target = RUNS_DIR / run_id
-        shutil.rmtree(target, ignore_errors=True)
         try:
-            await gh("run", "download", run_id, "-D", str(target))
-        except RuntimeError as error:
-            if "no valid artifacts" in str(error):
-                await checkpoints.put(context.pool, JOB, run_id, "done", {"repos": 0})
-            else:
-                await checkpoints.put(
-                    context.pool, JOB, run_id, "failed", {}, str(error)
+            names = json.loads(
+                await gh(
+                    "api",
+                    f"repos/devodii/soroban-wrapped/actions/runs/{run_id}/artifacts?per_page=100",
+                    "--jq",
+                    "[.artifacts[] | select(.expired | not) | .name]",
                 )
-                context.errors += 1
+            )
+            for name in names:
+                if any((target / name).glob("*.jsonl.gz")):
+                    continue
+                shutil.rmtree(target / name, ignore_errors=True)
+                await gh(
+                    "run", "download", run_id, "-n", name, "-D", str(target / name)
+                )
+        except RuntimeError as error:
+            await checkpoints.put(context.pool, JOB, run_id, "failed", {}, str(error))
+            context.errors += 1
+            continue
+        if not names:
+            await checkpoints.put(context.pool, JOB, run_id, "done", {"repos": 0})
             continue
         stored = 0
         for file in sorted(target.rglob("*.jsonl.gz")):
