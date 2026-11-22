@@ -30,6 +30,18 @@ SELECT
         SELECT count(*) FROM deployed_contracts
         WHERE live
     ) AS live_contracts,
+    (
+        SELECT greatest(reltuples, 0)::bigint FROM pg_class
+        WHERE oid = 'functions'::regclass
+    ) AS functions,
+    (
+        SELECT greatest(reltuples, 0)::bigint FROM pg_class
+        WHERE oid = 'commits'::regclass
+    ) AS commits,
+    (
+        SELECT greatest(reltuples, 0)::bigint FROM pg_class
+        WHERE oid = 'issues'::regclass
+    ) AS issues,
     (SELECT count(*) FROM comments) AS comments,
     (SELECT max(day) FROM network_days) AS last_day,
     (SELECT min(day) FROM network_days) AS first_day

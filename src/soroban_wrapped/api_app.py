@@ -44,10 +44,10 @@ from soroban_wrapped.api_models import (
     Rfp,
     SearchHit,
     SearchResponse,
-    Summary,
     ToolRef,
     TopContract,
     TopEdge,
+    Wrapped,
 )
 from soroban_wrapped.sql_loader import load_sql
 
@@ -80,6 +80,17 @@ class Cache:
             task = asyncio.create_task(self.fill(key, make))
             self.busy[key] = task
         return task
+
+    def peek(
+        self, key: str, make: Callable[[], Awaitable[Any]], ttl: float
+    ) -> Any | None:
+        cached = self.values.get(key)
+        if cached is None:
+            self.start(key, make)
+            return None
+        if time.monotonic() - cached[0] > ttl:
+            self.start(key, make)
+        return cached[1]
 
     async def get(
         self,
@@ -367,25 +378,39 @@ async def load_patterns(pool: asyncpg.Pool) -> list[PatternItem]:
     ]
 
 
-@router.get("/summary", response_model=Summary)
-async def summary(request: Request) -> Summary:
+@router.get("/wrapped", response_model=Wrapped)
+async def wrapped(request: Request) -> Wrapped:
     pool, cache = pool_of(request), cache_of(request)
 
-    async def make() -> Summary:
+    async def make() -> Wrapped:
         counts, days, top_proposals, top_needs = await asyncio.gather(
             rows(pool, "v2_summary_counts"),
             rows(pool, "v2_chain_days"),
             proposal_items(pool, cache),
             need_items(pool, cache),
         )
-        return Summary(
+        return Wrapped(
             **counts[0],
-            top_proposals=top_proposals[:6],
-            top_needs=top_needs[:6],
-            recent_days=[ChainDay.model_validate(d) for d in days[-120:]],
+            top_proposals=top_proposals[:14],
+            top_patterns=[],
+            top_needs=top_needs[:12],
+            days=[ChainDay.model_validate(d) for d in days],
+            top_contracts=[],
+            top_edges=[],
         )
 
-    return await cache.get("summary", make, SHORT_TTL)
+    base = await cache.get("wrapped", make, SHORT_TTL)
+    patterns_ = cache.peek("patterns", lambda: load_patterns(pool), LONG_TTL)
+    top = cache.peek("chain_top", lambda: load_chain_top(pool), LONG_TTL)
+    return base.model_copy(
+        update={
+            "top_patterns": [p for p in (patterns_ or []) if p.repos > 0][:10],
+            "top_contracts": top.contracts[:10] if top else [],
+            "top_edges": top.edges[:10] if top else [],
+            "patterns_warming": patterns_ is None,
+            "chain_warming": top is None,
+        }
+    )
 
 
 @router.get("/graph", response_model=GraphResponse)
@@ -521,8 +546,19 @@ async def neighbours(
             nodes.setdefault(node.id, node)
             link(node.id, id, "deploys", 3)
     nodes.pop(id, None)
+    center = full.nodes.get(id)
+    if center is None and kind == "repo":
+        index = await cache.get(
+            "repo_index", lambda: load_repo_index(pool), LONG_TTL / 3
+        )
+        found = next((r for r in index if r.full_name == rest), None)
+        if found:
+            center = repo_node(found.model_dump(), 0)
+    if center is None and kind == "contract":
+        network, _, contract_id = rest.partition(":")
+        center = contract_node(network, contract_id, None, None)
     return NeighbourResponse(
-        id=id, nodes=list(nodes.values()), edges=list(edges.values())
+        id=id, center=center, nodes=list(nodes.values()), edges=list(edges.values())
     )
 
 

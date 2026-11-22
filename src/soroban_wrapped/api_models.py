@@ -7,7 +7,7 @@ Network = Literal["mainnet", "testnet", "both"]
 NodeKind = Literal["proposal", "repo", "contract", "library", "bug_class"]
 
 
-class Summary(BaseModel):
+class Wrapped(BaseModel):
     soroban_repos: int
     stellar_repos: int
     mainnet_repos: int
@@ -18,12 +18,20 @@ class Summary(BaseModel):
     mainnet_contracts: int
     testnet_contracts: int
     live_contracts: int
+    functions: int
+    commits: int
+    issues: int
     comments: int
     first_day: date | None
     last_day: date | None
     top_proposals: list["ProposalItem"]
+    top_patterns: list["PatternItem"]
     top_needs: list["NeedItem"]
-    recent_days: list["ChainDay"]
+    days: list["ChainDay"]
+    top_contracts: list["TopContract"]
+    top_edges: list["TopEdge"]
+    patterns_warming: bool = False
+    chain_warming: bool = False
 
 
 class GraphNode(BaseModel):
@@ -62,6 +70,7 @@ class GraphResponse(BaseModel):
 
 class NeighbourResponse(BaseModel):
     id: str
+    center: GraphNode | None = None
     nodes: list[GraphNode]
     edges: list[GraphEdge]
 
@@ -428,7 +437,7 @@ class PatternList(BaseModel):
     warming: bool = False
 
 
-Summary.model_rebuild()
+Wrapped.model_rebuild()
 
 
 class Comment(BaseModel):
