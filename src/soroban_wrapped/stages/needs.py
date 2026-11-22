@@ -5,6 +5,7 @@ import re
 from soroban_wrapped.extract.rust import digest
 from soroban_wrapped.runner import Context, stage
 from soroban_wrapped.sql_loader import load_sql
+from soroban_wrapped.stages.gaps import gap_report
 from soroban_wrapped.workflow import Stage
 
 log = logging.getLogger("soroban_wrapped")
@@ -242,6 +243,8 @@ async def finalise(
             + ", ".join(f"{t['name']} ({t['relation']})" for t in tools)
             + ". The evidence shows developers still build their own, so the gap is what these do not cover."
         )
+        analysed_gap, analysis = await gap_report(context.pool, key)
+        gap = analysed_gap or gap
         seed = next((n for n in context.catalog.needs if n.id == key), None)
         detail = {
             "components": {k: round(v, 4) for k, v in components.items()},
@@ -253,6 +256,7 @@ async def finalise(
             "title": need["title"],
             "problem": problem,
             "gap": gap,
+            "gap_analysis": analysis,
             "who_is_affected": segments,
             "existing_tools": tools,
             "evidence_highlights": top,

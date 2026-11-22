@@ -34,6 +34,22 @@ def render(need: dict) -> str:
         lines.append(
             f"- [{tool['name']}]({tool.get('url') or ''}) ({tool['relation']})"
         )
+    if rfp.get("gap_analysis"):
+        lines += ["", "## What is missing, tool by tool", ""]
+    for tool in rfp.get("gap_analysis", []):
+        lines += [
+            f"### {tool['name']}: {tool['verdict']}",
+            "",
+            tool["summary"],
+            "",
+        ]
+        for item in tool["items"]:
+            lines.append(f"- **{item['status']}**: {item['item']}")
+            for ask in item["evidence"][:2]:
+                lines.append(
+                    f"  - related open issue: [{ask['title']}]({ask['url']}) ({ask['reactions']} reactions, {ask['comments']} comments)"
+                )
+        lines.append("")
     lines += ["", "## Who is affected", ""]
     lines += [
         f"- {s['stack']}: {s['repos']} repos" for s in rfp.get("who_is_affected", [])

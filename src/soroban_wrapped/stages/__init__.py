@@ -5,6 +5,7 @@ from soroban_wrapped.stages import (  # noqa: F401
     dispatch,
     ecosystem,
     extract,
+    gaps,
     graph,
     harvest,
     history,

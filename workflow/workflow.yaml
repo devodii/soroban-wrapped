@@ -201,5 +201,6 @@ stages:
   - {id: score, uses: catalog.score, needs: [mine]}
   - {id: qa, uses: qa.stackexchange, needs: [catalog]}
   - {id: needs, uses: catalog.needs, needs: [ecosystem, history, score, qa]}
+  - {id: gaps, uses: catalog.gaps, needs: [needs]}
   - {id: graph, uses: graph.build, needs: [score]}
   - {id: report, uses: report.write, needs: [graph, needs]}

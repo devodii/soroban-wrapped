@@ -226,6 +226,30 @@ class Highlight(BaseModel):
     relevance: float = 0
 
 
+class GapEvidence(BaseModel):
+    title: str
+    url: str
+    reactions: int = 0
+    comments: int = 0
+
+
+class GapItem(BaseModel):
+    item: str
+    status: str
+    coverage: float = 0
+    evidence: list[GapEvidence] = []
+
+
+class GapTool(BaseModel):
+    tool: str
+    name: str
+    url: str | None = None
+    verdict: str
+    summary: str
+    reasons: list[str] = []
+    items: list[GapItem] = []
+
+
 class Rfp(BaseModel):
     title: str = ""
     problem: str = ""
@@ -235,6 +259,7 @@ class Rfp(BaseModel):
     success_metrics: list[str] = []
     who_is_affected: list[Affected] = []
     existing_tools: list[ExistingTool] = []
+    gap_analysis: list[GapTool] = []
     evidence_highlights: list[Highlight] = []
 
 

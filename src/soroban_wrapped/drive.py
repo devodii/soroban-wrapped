@@ -25,6 +25,7 @@ PERIODIC = [
     "mine",
     "score",
     "needs",
+    "gaps",
     "graph",
     "report",
 ]

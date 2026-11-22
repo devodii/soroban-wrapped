@@ -106,6 +106,7 @@ class Tool(BaseModel):
     description: str
     ecosystems: list[str] = Field(default_factory=list)
     packages: dict[str, list[str]] = Field(default_factory=dict)
+    repos: list[str] = Field(default_factory=list)
     keywords: list[str] = Field(default_factory=list)
     solves: list[str] = Field(default_factory=list)
 
