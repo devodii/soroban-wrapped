@@ -93,3 +93,11 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+.sw-chain-explore {
+  align-self: flex-start;
+}
+
+.sw-chain-id code {
+  white-space: nowrap;
+}

@@ -186,7 +186,7 @@ export function Chain({
               </li>
             ))}
           </ul>
-          <Button variant="primary" onClick={onShowGraph}>
+          <Button variant="primary" className="sw-chain-explore" onClick={onShowGraph}>
             Explore the call graph
           </Button>
         </Tile>
