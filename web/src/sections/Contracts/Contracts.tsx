@@ -15,9 +15,9 @@ export function Contracts({ data }: { data: Wrapped }) {
   const rows = [
     ...top.map((t) => ({
       id: t.contract_id,
-      label:
-        t.name ??
-        `${t.contract_id.slice(0, 4)}…${t.contract_id.slice(-4)} · ${t.top_function ?? '?'}`,
+      label: t.name ?? t.contract_id,
+      mono: !t.name,
+      note: t.top_function,
       value: share(t.invocations),
       href: t.registry_url,
     })),
@@ -31,9 +31,9 @@ export function Contracts({ data }: { data: Wrapped }) {
     .filter((t) => t.invocations >= MIN_CALLS)
     .map((t) => ({
       id: t.contract_id,
-      label:
-        t.name ??
-        `${t.contract_id.slice(0, 4)}…${t.contract_id.slice(-4)} · ${t.top_function ?? '?'}`,
+      label: t.name ?? t.contract_id,
+      mono: !t.name,
+      note: t.top_function,
       value: (100 * (t.invocations - t.successful)) / t.invocations,
       href: t.registry_url,
     }))
@@ -49,7 +49,6 @@ export function Contracts({ data }: { data: Wrapped }) {
         >
           <HBars
             label="Share of all contract calls"
-            labelWidth={190}
             format={(n) => `${n.toFixed(n < 10 ? 1 : 0)}%`}
             rows={rows}
           />
@@ -75,7 +74,6 @@ export function Contracts({ data }: { data: Wrapped }) {
         >
           <HBars
             label="Share of each contract's calls that fail"
-            labelWidth={190}
             color="var(--destructive)"
             format={(n) => `${n.toFixed(n < 10 ? 1 : 0)}%`}
             rows={reliable}

@@ -13,5 +13,6 @@
 .sw-contracts-tall {
   @include t.media(lg) {
     grid-row: span 2;
+    align-self: start;
   }
 }

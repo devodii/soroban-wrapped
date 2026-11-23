@@ -1,4 +1,4 @@
-import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { cx } from '../../ui/cx'
 import './HBars.scss'
 
 export interface HBar {
@@ -6,79 +6,55 @@ export interface HBar {
   label: string
   value: number
   href?: string | null
+  mono?: boolean
+  note?: string | null
 }
-
-const ROW = 32
 
 export function HBars({
   rows,
   color = 'var(--chart-3)',
   format = (n: number) => n.toLocaleString('en', { notation: 'compact', maximumFractionDigits: 1 }),
-  labelWidth = 150,
   label,
 }: {
   rows: HBar[]
   color?: string
   format?: (value: number) => string
-  labelWidth?: number
   label: string
 }) {
+  const max = Math.max(...rows.map((row) => row.value), 1)
   return (
-    <div className="sw-hbars" role="img" aria-label={label}>
-      <ResponsiveContainer width="100%" height={rows.length * ROW + 8}>
-        <BarChart data={rows} layout="vertical" margin={{ top: 0, right: 56, bottom: 0, left: 0 }}>
-          <XAxis type="number" hide domain={[0, 'dataMax']} />
-          <YAxis
-            type="category"
-            dataKey="id"
-            width={labelWidth}
-            tickLine={false}
-            axisLine={false}
-            tick={(props: {
-              x?: number | string
-              y?: number | string
-              payload?: { value?: string | number }
-            }) => {
-              const row = rows.find((r) => r.id === props.payload?.value)
-              const text = (
-                <text
-                  x={Number(props.x) - 6}
-                  y={props.y}
-                  dy={4}
-                  textAnchor="end"
-                  fill="var(--foreground)"
-                  className={row?.href ? 'sw-hbars-link' : undefined}
-                >
-                  {row?.label}
-                </text>
-              )
-              return row?.href ? (
-                <a href={row.href} target="_blank" rel="noreferrer">
-                  {text}
-                </a>
-              ) : (
-                text
-              )
-            }}
-          />
-          <Bar
-            dataKey="value"
-            radius={4}
-            background={{ fill: 'var(--track)', radius: 4 }}
-            isAnimationActive={false}
-          >
-            {rows.map((row, index) => (
-              <Cell key={row.id} fill={index === 0 ? 'var(--primary)' : color} />
-            ))}
-            <LabelList
-              dataKey="value"
-              position="right"
-              formatter={(v) => format(Number(v))}
-              fill="var(--foreground)"
-            />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+    <ol className="sw-hbars" aria-label={label}>
+      {rows.map((row, index) => (
+        <li key={row.id} className="sw-hbars-row">
+          <div className="sw-hbars-head">
+            {row.href ? (
+              <a
+                className={cx('sw-hbars-label', row.mono && 'sw-hbars-mono')}
+                href={row.href}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {row.label}
+              </a>
+            ) : (
+              <span className={cx('sw-hbars-label', row.mono && 'sw-hbars-mono')}>{row.label}</span>
+            )}
+            {row.note && <span className="sw-hbars-note">{row.note}</span>}
+          </div>
+          <div className="sw-hbars-line">
+            <div className="sw-hbars-track">
+              <div
+                className="sw-hbars-fill"
+                style={{
+                  width: `${(100 * row.value) / max}%`,
+                  background: index === 0 ? 'var(--primary)' : color,
+                }}
+              />
+            </div>
+            <span className="sw-hbars-value">{format(row.value)}</span>
+          </div>
+        </li>
+      ))}
+    </ol>
   )
 }

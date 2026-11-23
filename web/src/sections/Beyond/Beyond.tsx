@@ -51,7 +51,6 @@ export function Beyond({ data }: { data: Wrapped }) {
         >
           <HBars
             label="How many contracts clear each bar"
-            labelWidth={230}
             color="var(--chart-3)"
             format={(n) => n.toLocaleString('en')}
             rows={[

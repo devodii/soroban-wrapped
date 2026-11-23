@@ -11,7 +11,10 @@ export const TopContracts: Story = {
     label: 'Top contracts',
     rows: wrapped.top_contracts.map((c) => ({
       id: c.contract_id,
-      label: `${c.contract_id.slice(0, 4)}…${c.contract_id.slice(-4)} ${c.top_function ?? ''}`,
+      label: c.name ?? c.contract_id,
+      mono: !c.name,
+      note: c.top_function,
+      href: c.registry_url,
       value: c.invocations,
     })),
   },
