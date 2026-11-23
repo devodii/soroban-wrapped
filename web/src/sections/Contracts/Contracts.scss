@@ -1,11 +1,11 @@
 @use '../../styles/tokens' as t;
 
-.sw-concentration-grid {
+.sw-contracts-grid {
   display: grid;
   gap: var(--space-4);
   margin-top: var(--space-5);
 
   @include t.media(lg) {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1.5fr 1fr;
   }
 }

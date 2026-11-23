@@ -71,6 +71,8 @@ class Contract(BaseModel):
     peak_invocations: int
     top_function: str | None
     live: bool | None
+    name: str | None
+    registry_url: str | None
     sdk_version: str | None
     function_count: int | None
     wasm_size: int | None
@@ -112,11 +114,6 @@ class WasmStats(BaseModel):
     most_functions: int | None
 
 
-class ParetoPoint(BaseModel):
-    contracts: int
-    share: float
-
-
 class SizeBucket(BaseModel):
     from_kb: int
     contracts: int
@@ -133,7 +130,6 @@ class Wrapped(BaseModel):
     top_contracts: list[Contract]
     concentration: Concentration
     graph_totals: GraphTotals
-    pareto: list[ParetoPoint]
     wasm_sizes: list[SizeBucket]
     sdk_versions: list[SdkVersion]
     wasm: WasmStats

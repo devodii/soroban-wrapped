@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { useWrapped } from './lib/queries'
 import { Activity } from './sections/Activity/Activity'
-import { Anatomy } from './sections/Anatomy/Anatomy'
-import { Concentration } from './sections/Concentration/Concentration'
+import { Contracts } from './sections/Contracts/Contracts'
 import { Footer } from './sections/Footer/Footer'
+import { Hero } from './sections/Hero/Hero'
 import { Nav } from './sections/Nav/Nav'
 import type { NetworkName } from './sections/Nav/Nav'
-import { Summary } from './sections/Summary/Summary'
+import { Takeaways } from './sections/Takeaways/Takeaways'
 import { ErrorState } from './ui/ErrorState/ErrorState'
 import { Skeleton } from './ui/Skeleton/Skeleton'
 import './App.scss'
@@ -28,15 +28,15 @@ export function App() {
         )}
         {data && (
           <>
-            <Summary data={data} />
+            <Hero data={data} />
             <section id="activity" className="sw-app-section">
               <Activity data={data} />
             </section>
-            <section id="concentration" className="sw-app-section">
-              <Concentration data={data} />
+            <section id="contracts" className="sw-app-section">
+              <Contracts data={data} />
             </section>
-            <section id="anatomy" className="sw-app-section">
-              <Anatomy data={data} />
+            <section id="takeaways" className="sw-app-section">
+              <Takeaways data={data} />
             </section>
           </>
         )}

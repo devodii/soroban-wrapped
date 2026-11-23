@@ -43,11 +43,14 @@ SELECT
     p.peak_invocations,
     p.top_function,
     d.live,
+    n.name,
+    n.channel AS name_channel,
     w.sdk_version,
     w.function_count,
     w.size AS wasm_size
 FROM totals AS t
 INNER JOIN peak AS p ON t.contract_id = p.contract_id
 LEFT JOIN deployed_contracts AS d ON d.network = $1 AND t.contract_id = d.contract_id
+LEFT JOIN contract_names AS n ON n.network = $1 AND t.contract_id = n.contract_id
 LEFT JOIN wasm_modules AS w ON d.network = w.network AND d.wasm_hash = w.hash
 ORDER BY t.invocations DESC

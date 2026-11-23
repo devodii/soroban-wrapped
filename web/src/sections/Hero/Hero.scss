@@ -1,12 +1,12 @@
 @use '../../styles/tokens' as t;
 
-.sw-summary {
+.sw-hero {
   position: relative;
   overflow: hidden;
   padding: var(--space-7) var(--space-4) var(--space-5);
 }
 
-.sw-summary-inner {
+.sw-hero-inner {
   position: relative;
   max-width: var(--content-width);
   margin: 0 auto;
@@ -15,11 +15,11 @@
   gap: var(--space-4);
 }
 
-.sw-summary-eyebrow {
+.sw-hero-eyebrow {
   @include t.eyebrow;
 }
 
-.sw-summary-title {
+.sw-hero-title {
   font-size: clamp(2.75rem, 7vw, 5.5rem);
   line-height: 0.9;
 
@@ -28,7 +28,7 @@
   }
 }
 
-.sw-summary-kpis {
+.sw-hero-kpis {
   display: grid;
   gap: var(--space-3);
   grid-template-columns: repeat(2, 1fr);
@@ -38,22 +38,9 @@
   }
 }
 
-.sw-summary-figure {
+.sw-hero-figure {
   font-family: var(--font-heading);
   font-size: var(--text-headline);
   line-height: 1;
   color: var(--brand);
-}
-
-.sw-summary-findings {
-  display: grid;
-  gap: var(--space-3);
-  margin: 0;
-  padding-left: var(--space-5);
-  font-size: var(--text-lg);
-
-  b {
-    color: var(--brand);
-    font-weight: 600;
-  }
 }

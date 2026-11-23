@@ -33,6 +33,7 @@ async def run_sync(forever: bool) -> None:
 
     from soroban_wrapped.contracts import check_network
     from soroban_wrapped.database import open_pool
+    from soroban_wrapped.names import sync_names
     from soroban_wrapped.networks import NetworkName
     from soroban_wrapped.sync import sync
 
@@ -44,6 +45,7 @@ async def run_sync(forever: bool) -> None:
                 try:
                     days = await sync(pool)
                     log.info("sync imported %s days", days)
+                    await sync_names(pool, http)
                     for network in NetworkName.__args__:
                         await check_network(pool, http, network)
                 except Exception:

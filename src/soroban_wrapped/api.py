@@ -17,7 +17,6 @@ from soroban_wrapped.api_models import (
     DayRecord,
     GraphTotals,
     Month,
-    ParetoPoint,
     SdkVersion,
     SizeBucket,
     Totals,
@@ -27,6 +26,7 @@ from soroban_wrapped.api_models import (
 )
 from soroban_wrapped.config import ROOT
 from soroban_wrapped.database import open_pool
+from soroban_wrapped.networks import load_networks
 from soroban_wrapped.sql_loader import load_sql
 
 log = logging.getLogger("soroban_wrapped")
@@ -34,10 +34,19 @@ log = logging.getLogger("soroban_wrapped")
 WEB_DIST = ROOT / "web" / "dist"
 TTL_SECONDS = 600
 TOP_CONTRACTS = 10
-PARETO_AT = [1, 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 50000]
 TOP_SDKS = 10
 MIN_FAILURE_DAY_TRANSACTIONS = 1_000_000
 NETWORKS = ("mainnet", "testnet")
+
+
+def contract(network: str, row: dict) -> Contract:
+    name = row.pop("name")
+    channel = row.pop("name_channel")
+    path = name if channel == "root" else f"{channel}/{name}"
+    site = load_networks().get(network).registry_site
+    return Contract(
+        **row, name=name, registry_url=f"{site}/contracts/{path}" if name else None
+    )
 
 
 def records(days: list[Day]) -> list[DayRecord]:
@@ -90,7 +99,6 @@ async def build(pool, network: str) -> Wrapped:
         top,
         concentration,
         graph_totals,
-        pareto,
         sdks,
         wasm,
         sizes,
@@ -102,7 +110,6 @@ async def build(pool, network: str) -> Wrapped:
         many("stats_top_contracts", network, TOP_CONTRACTS),
         one("stats_concentration", network),
         one("stats_graph_totals", network),
-        many("stats_pareto", network, PARETO_AT),
         many("stats_sdk_versions", network, TOP_SDKS),
         one("stats_wasm", network),
         many("stats_wasm_sizes", network),
@@ -125,10 +132,9 @@ async def build(pool, network: str) -> Wrapped:
         months=[Month(**m) for m in months],
         weekdays=[Weekday(**w) for w in weekdays],
         records=records(day_models),
-        top_contracts=[Contract(**c) for c in top],
+        top_contracts=[contract(network, c) for c in top],
         concentration=Concentration(**concentration),
         graph_totals=GraphTotals(**graph_totals),
-        pareto=[ParetoPoint(**p) for p in pareto],
         sdk_versions=[SdkVersion(**s) for s in sdks],
         wasm=WasmStats(**wasm),
         wasm_sizes=[SizeBucket(**b) for b in sizes],

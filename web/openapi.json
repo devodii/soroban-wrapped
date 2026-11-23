@@ -100,6 +100,17 @@
             ],
             "title": "Live"
           },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
           "peak_daily_accounts": {
             "title": "Peak Daily Accounts",
             "type": "integer"
@@ -112,6 +123,17 @@
           "peak_invocations": {
             "title": "Peak Invocations",
             "type": "integer"
+          },
+          "registry_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registry Url"
           },
           "sdk_version": {
             "anyOf": [
@@ -163,6 +185,8 @@
           "peak_invocations",
           "top_function",
           "live",
+          "name",
+          "registry_url",
           "sdk_version",
           "function_count",
           "wasm_size"
@@ -334,24 +358,6 @@
           "new_contracts"
         ],
         "title": "Month",
-        "type": "object"
-      },
-      "ParetoPoint": {
-        "properties": {
-          "contracts": {
-            "title": "Contracts",
-            "type": "integer"
-          },
-          "share": {
-            "title": "Share",
-            "type": "number"
-          }
-        },
-        "required": [
-          "contracts",
-          "share"
-        ],
-        "title": "ParetoPoint",
         "type": "object"
       },
       "SdkVersion": {
@@ -640,13 +646,6 @@
             "title": "Network",
             "type": "string"
           },
-          "pareto": {
-            "items": {
-              "$ref": "#/components/schemas/ParetoPoint"
-            },
-            "title": "Pareto",
-            "type": "array"
-          },
           "records": {
             "items": {
               "$ref": "#/components/schemas/DayRecord"
@@ -700,7 +699,6 @@
           "top_contracts",
           "concentration",
           "graph_totals",
-          "pareto",
           "wasm_sizes",
           "sdk_versions",
           "wasm"

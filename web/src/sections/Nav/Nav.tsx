@@ -10,8 +10,8 @@ export type NetworkName = 'mainnet' | 'testnet'
 
 export const SECTIONS = [
   { id: 'activity', label: 'Activity' },
-  { id: 'concentration', label: 'Concentration' },
-  { id: 'anatomy', label: 'Anatomy' },
+  { id: 'contracts', label: 'Contracts' },
+  { id: 'takeaways', label: 'Takeaways' },
 ]
 
 export function Nav({

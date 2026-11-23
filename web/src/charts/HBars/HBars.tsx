@@ -5,6 +5,7 @@ export interface HBar {
   id: string
   label: string
   value: number
+  href?: string | null
 }
 
 const ROW = 32
@@ -29,11 +30,36 @@ export function HBars({
           <XAxis type="number" hide domain={[0, 'dataMax']} />
           <YAxis
             type="category"
-            dataKey="label"
+            dataKey="id"
             width={labelWidth}
             tickLine={false}
             axisLine={false}
-            stroke="var(--foreground)"
+            tick={(props: {
+              x?: number | string
+              y?: number | string
+              payload?: { value?: string | number }
+            }) => {
+              const row = rows.find((r) => r.id === props.payload?.value)
+              const text = (
+                <text
+                  x={Number(props.x) - 6}
+                  y={props.y}
+                  dy={4}
+                  textAnchor="end"
+                  fill="var(--foreground)"
+                  className={row?.href ? 'sw-hbars-link' : undefined}
+                >
+                  {row?.label}
+                </text>
+              )
+              return row?.href ? (
+                <a href={row.href} target="_blank" rel="noreferrer">
+                  {text}
+                </a>
+              ) : (
+                text
+              )
+            }}
           />
           <Bar
             dataKey="value"

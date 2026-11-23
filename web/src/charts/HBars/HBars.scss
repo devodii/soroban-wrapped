@@ -2,3 +2,10 @@
   width: 100%;
   font-size: var(--text-xs);
 }
+
+.sw-hbars-link {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, currentColor 35%, transparent);
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}

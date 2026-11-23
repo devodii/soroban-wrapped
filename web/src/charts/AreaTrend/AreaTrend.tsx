@@ -30,6 +30,7 @@ export function AreaTrend({
   format = (n: number) => n.toLocaleString('en', { notation: 'compact', maximumFractionDigits: 1 }),
   label,
   height = 260,
+  axis = true,
 }: {
   data: TrendPoint[]
   markers?: Marker[]
@@ -37,6 +38,7 @@ export function AreaTrend({
   format?: (value: number) => string
   label: string
   height?: number
+  axis?: boolean
 }) {
   const ticks = data
     .map((point) => moment.utc(point.x).startOf('month').valueOf())
@@ -46,7 +48,7 @@ export function AreaTrend({
   return (
     <div className="sw-areatrend" role="img" aria-label={label}>
       <ResponsiveContainer width="100%" height={height}>
-        <AreaChart data={data} margin={{ top: 28, right: 16, bottom: 0, left: 0 }}>
+        <AreaChart data={data} margin={{ top: 24, right: 16, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={color} stopOpacity={0.45} />
@@ -60,6 +62,7 @@ export function AreaTrend({
             scale="time"
             domain={['dataMin', 'dataMax']}
             ticks={ticks}
+            hide={!axis}
             tickFormatter={(x: number) => moment.utc(x).format('MMM')}
             stroke="var(--axis)"
             tickLine={false}

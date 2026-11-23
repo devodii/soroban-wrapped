@@ -13,6 +13,8 @@ NetworkName = Literal["mainnet", "testnet"]
 class Network(BaseModel):
     rpc_urls: list[str]
     lake: str
+    registry: str
+    registry_site: str
 
 
 class Rpc(BaseModel):

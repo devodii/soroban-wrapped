@@ -4,10 +4,14 @@ mainnet:
     - https://soroban-rpc.mainnet.stellar.gateway.fm
     - https://rpc.lightsail.network
   lake: https://aws-public-blockchain.s3.us-east-2.amazonaws.com/v1.1/stellar/parquet/pubnet/v1
+  registry: https://stellar-registry-mainnet.fly.dev
+  registry_site: https://stellar.rgstry.xyz
 testnet:
   rpc_urls:
     - https://soroban-testnet.stellar.org
   lake: https://aws-public-blockchain.s3.us-east-2.amazonaws.com/v1.1/stellar/parquet/testnet/v1
+  registry: https://stellar-registry-testnet.fly.dev
+  registry_site: https://testnet.rgstry.xyz
 rpc:
   batch_keys: 200
   concurrency: 4

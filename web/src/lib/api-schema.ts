@@ -68,6 +68,8 @@ export interface components {
             last_day: string;
             /** Live */
             live: boolean | null;
+            /** Name */
+            name: string | null;
             /** Peak Daily Accounts */
             peak_daily_accounts: number;
             /**
@@ -77,6 +79,8 @@ export interface components {
             peak_day: string;
             /** Peak Invocations */
             peak_invocations: number;
+            /** Registry Url */
+            registry_url: string | null;
             /** Sdk Version */
             sdk_version: string | null;
             /** Successful */
@@ -158,13 +162,6 @@ export interface components {
             peak_contracts_called: number;
             /** Transactions */
             transactions: number;
-        };
-        /** ParetoPoint */
-        ParetoPoint: {
-            /** Contracts */
-            contracts: number;
-            /** Share */
-            share: number;
         };
         /** SdkVersion */
         SdkVersion: {
@@ -274,8 +271,6 @@ export interface components {
              * @enum {string}
              */
             network: "mainnet" | "testnet";
-            /** Pareto */
-            pareto: components["schemas"]["ParetoPoint"][];
             /** Records */
             records: components["schemas"]["DayRecord"][];
             /** Sdk Versions */
@@ -303,7 +298,6 @@ export type DayRecord = components['schemas']['DayRecord'];
 export type GraphTotals = components['schemas']['GraphTotals'];
 export type HttpValidationError = components['schemas']['HTTPValidationError'];
 export type Month = components['schemas']['Month'];
-export type ParetoPoint = components['schemas']['ParetoPoint'];
 export type SdkVersion = components['schemas']['SdkVersion'];
 export type SizeBucket = components['schemas']['SizeBucket'];
 export type Totals = components['schemas']['Totals'];

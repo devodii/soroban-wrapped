@@ -1,17 +1,15 @@
-@use '../../styles/tokens' as t;
-
-.sw-activity-grid {
-  display: grid;
-  gap: var(--space-4);
-  margin-top: var(--space-5);
-
-  @include t.media(lg) {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.sw-activity-panels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
-.sw-activity-wide {
-  @include t.media(lg) {
-    grid-column: 1 / -1;
+.sw-activity-caption {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 500;
+
+  &:first-child {
+    margin-top: 0;
   }
 }

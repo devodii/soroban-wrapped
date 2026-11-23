@@ -2,7 +2,7 @@ import type { Wrapped } from '../lib/api-schema'
 
 export const wrapped: Wrapped = {
   network: 'mainnet',
-  generated_at: '2026-11-23T16:15:48.814646Z',
+  generated_at: '2026-11-23T16:27:06.492073Z',
   totals: {
     ledgers: 5022426,
     transactions: 1590157429,
@@ -3438,6 +3438,8 @@ export const wrapped: Wrapped = {
       peak_invocations: 5116869,
       top_function: 'plant',
       live: true,
+      name: 'kale',
+      registry_url: 'https://stellar.rgstry.xyz/contracts/kale/kale',
       sdk_version: '22.0.7',
       function_count: 9,
       wasm_size: 19492,
@@ -3454,6 +3456,8 @@ export const wrapped: Wrapped = {
       peak_invocations: 2222403,
       top_function: 'mint',
       live: true,
+      name: 'kale-sac',
+      registry_url: 'https://stellar.rgstry.xyz/contracts/kale/kale-sac',
       sdk_version: null,
       function_count: null,
       wasm_size: null,
@@ -3470,6 +3474,8 @@ export const wrapped: Wrapped = {
       peak_invocations: 334629,
       top_function: 'harvest',
       live: true,
+      name: null,
+      registry_url: null,
       sdk_version: '22.0.7',
       function_count: 2,
       wasm_size: 1713,
@@ -3486,6 +3492,8 @@ export const wrapped: Wrapped = {
       peak_invocations: 229114,
       top_function: 'balance',
       live: true,
+      name: 'usdc',
+      registry_url: 'https://stellar.rgstry.xyz/contracts/circle/usdc',
       sdk_version: null,
       function_count: null,
       wasm_size: null,
@@ -3502,6 +3510,8 @@ export const wrapped: Wrapped = {
       peak_invocations: 212050,
       top_function: 'balance',
       live: true,
+      name: 'xlm',
+      registry_url: 'https://stellar.rgstry.xyz/contracts/xlm',
       sdk_version: null,
       function_count: null,
       wasm_size: null,
@@ -3518,6 +3528,8 @@ export const wrapped: Wrapped = {
       peak_invocations: 71251,
       top_function: 'batch_plant',
       live: true,
+      name: null,
+      registry_url: null,
       sdk_version: '21.7.7',
       function_count: 7,
       wasm_size: 23100,
@@ -3534,6 +3546,8 @@ export const wrapped: Wrapped = {
       peak_invocations: 65925,
       top_function: 'update',
       live: true,
+      name: null,
+      registry_url: null,
       sdk_version: null,
       function_count: 14,
       wasm_size: 7506,
@@ -3550,6 +3564,8 @@ export const wrapped: Wrapped = {
       peak_invocations: 82518,
       top_function: 'harvest',
       live: true,
+      name: null,
+      registry_url: null,
       sdk_version: null,
       function_count: 8,
       wasm_size: 4305,
@@ -3566,6 +3582,8 @@ export const wrapped: Wrapped = {
       peak_invocations: 60907,
       top_function: 'transfer',
       live: true,
+      name: 'aqua',
+      registry_url: 'https://stellar.rgstry.xyz/contracts/aquarius/aqua',
       sdk_version: null,
       function_count: null,
       wasm_size: null,
@@ -3582,6 +3600,8 @@ export const wrapped: Wrapped = {
       peak_invocations: 51721,
       top_function: 'swap',
       live: true,
+      name: null,
+      registry_url: null,
       sdk_version: null,
       function_count: 80,
       wasm_size: 57320,
@@ -3605,72 +3625,6 @@ export const wrapped: Wrapped = {
     callees: 149487,
     self_calls: 3317,
   },
-  pareto: [
-    {
-      contracts: 1,
-      share: 64.791,
-    },
-    {
-      contracts: 2,
-      share: 89.733,
-    },
-    {
-      contracts: 3,
-      share: 93.835,
-    },
-    {
-      contracts: 5,
-      share: 95.479,
-    },
-    {
-      contracts: 10,
-      share: 96.557,
-    },
-    {
-      contracts: 20,
-      share: 97.308,
-    },
-    {
-      contracts: 50,
-      share: 98.068,
-    },
-    {
-      contracts: 100,
-      share: 98.53,
-    },
-    {
-      contracts: 200,
-      share: 98.824,
-    },
-    {
-      contracts: 500,
-      share: 99.149,
-    },
-    {
-      contracts: 1000,
-      share: 99.577,
-    },
-    {
-      contracts: 2000,
-      share: 99.917,
-    },
-    {
-      contracts: 5000,
-      share: 99.943,
-    },
-    {
-      contracts: 10000,
-      share: 99.957,
-    },
-    {
-      contracts: 50000,
-      share: 99.99,
-    },
-    {
-      contracts: 156558,
-      share: 100.0,
-    },
-  ],
   wasm_sizes: [
     {
       from_kb: 1,

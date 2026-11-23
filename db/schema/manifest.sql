@@ -2,6 +2,7 @@
 \i tables/checkpoints.sql
 \i tables/contract_activity.sql
 \i tables/contract_edges.sql
+\i tables/contract_names.sql
 \i tables/wasm_modules.sql
 \i tables/deployed_contracts.sql
 \i tables/network_days.sql
