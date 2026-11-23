@@ -74,8 +74,12 @@ async def import_run(pool: asyncpg.Pool, run_id: str) -> int | None:
     except RuntimeError as error:
         await checkpoints.put(pool, JOB, run_id, "failed", {}, str(error))
         return None
+    folders = sorted(target.glob("lake-*"))
+    if not folders:
+        await checkpoints.put(pool, JOB, run_id, "empty", {}, "no artifacts left")
+        return 0
     imported = 0
-    for folder in sorted(target.glob("lake-*")):
+    for folder in folders:
         done, _ = await import_directory(pool, folder, folder.name.split("-")[1])
         imported += done
     await checkpoints.put(pool, JOB, run_id, "done", {"days": imported})

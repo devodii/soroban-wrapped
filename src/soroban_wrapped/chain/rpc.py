@@ -6,7 +6,7 @@ import httpx
 from pydantic import BaseModel
 from stellar_sdk import Address, xdr
 
-from soroban_wrapped.resilience import resilient
+RETRIES = 5
 
 
 class Entry(BaseModel):
@@ -64,7 +64,12 @@ class RpcClient:
                 raise last
             raise RpcError(str(last))
 
-        return await resilient(self.http, attempt)
+        for pause in range(RETRIES - 1):
+            try:
+                return await attempt()
+            except (httpx.TransportError, httpx.TimeoutException):
+                await asyncio.sleep(2**pause)
+        return await attempt()
 
     async def entries(self, keys: list[str]) -> dict[str, Entry]:
         result = await self.call("getLedgerEntries", {"keys": keys})
