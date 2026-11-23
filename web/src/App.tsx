@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useWrapped } from './lib/queries'
 import { Activity } from './sections/Activity/Activity'
+import { Beyond } from './sections/Beyond/Beyond'
 import { Contracts } from './sections/Contracts/Contracts'
 import { Footer } from './sections/Footer/Footer'
 import { Hero } from './sections/Hero/Hero'
@@ -34,6 +35,9 @@ export function App() {
             </section>
             <section id="contracts" className="sw-app-section">
               <Contracts data={data} />
+            </section>
+            <section id="beyond" className="sw-app-section">
+              <Beyond data={data} />
             </section>
             <section id="takeaways" className="sw-app-section">
               <Takeaways data={data} />

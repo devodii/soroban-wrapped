@@ -11,6 +11,7 @@ export type NetworkName = 'mainnet' | 'testnet'
 export const SECTIONS = [
   { id: 'activity', label: 'Activity' },
   { id: 'contracts', label: 'Contracts' },
+  { id: 'beyond', label: 'Beyond' },
   { id: 'takeaways', label: 'Takeaways' },
 ]
 

@@ -12,10 +12,30 @@ export function Hero({ data }: { data: Wrapped }) {
   const { totals } = data
   const failed = (100 * totals.failed_transactions) / totals.transactions
   const kpis = [
-    { label: 'Contract calls', value: totals.contract_calls, format: compact },
-    { label: 'Transactions', value: totals.transactions, format: compact },
-    { label: 'Contracts called', value: totals.contracts_called, format: compact },
-    { label: 'Failed transactions', value: failed, format: (n: number) => `${n.toFixed(1)}%` },
+    {
+      label: 'Contract calls',
+      value: totals.contract_calls,
+      format: compact,
+      note: 'calls to Soroban contracts',
+    },
+    {
+      label: 'Stellar transactions',
+      value: totals.transactions,
+      format: compact,
+      note: 'the whole network',
+    },
+    {
+      label: 'Contracts called',
+      value: totals.contracts_called,
+      format: compact,
+      note: 'different contracts',
+    },
+    {
+      label: 'Of them failed',
+      value: failed,
+      format: (n: number) => `${n.toFixed(1)}%`,
+      note: 'of all Stellar transactions',
+    },
   ]
   return (
     <section className="sw-hero" id="top">
@@ -32,7 +52,7 @@ export function Hero({ data }: { data: Wrapped }) {
         </h1>
         <div className="sw-hero-kpis">
           {kpis.map((k) => (
-            <Tile key={k.label} title={k.label}>
+            <Tile key={k.label} title={k.label} note={k.note}>
               <Figure value={k.value} format={k.format} className="sw-hero-figure" />
             </Tile>
           ))}

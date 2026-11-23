@@ -12,6 +12,10 @@ SELECT
         WHERE a.network = $1
     ) AS contracts_called,
     (
+        SELECT sum(a.invocations - a.successful) FROM contract_activity AS a
+        WHERE a.network = $1
+    ) AS failed_calls,
+    (
         SELECT count(*) FROM contract_edges AS e
         WHERE e.network = $1
     ) AS edge_days,

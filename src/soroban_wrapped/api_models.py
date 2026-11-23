@@ -14,6 +14,7 @@ class Totals(BaseModel):
     first_day: date
     last_day: date
     contracts_called: int
+    failed_calls: int
     call_pairs: int
     synced_at: datetime | None
     has_partial_day: bool
@@ -96,6 +97,7 @@ class GraphTotals(BaseModel):
     callers: int
     callees: int
     self_calls: int
+    giant_calls: int
 
 
 class SdkVersion(BaseModel):
@@ -119,6 +121,27 @@ class SizeBucket(BaseModel):
     contracts: int
 
 
+class SplitMonth(BaseModel):
+    month: date
+    giants: int
+    others: int
+
+
+class Cohort(BaseModel):
+    month: date
+    contracts: int
+    active: int
+
+
+class Funnel(BaseModel):
+    contracts: int
+    over_thousand_calls: int
+    active_a_month: int
+    active_half_a_year: int
+    over_hundred_thousand_calls: int
+    median_calls: float
+
+
 class Wrapped(BaseModel):
     network: Literal["mainnet", "testnet"]
     generated_at: datetime
@@ -130,6 +153,10 @@ class Wrapped(BaseModel):
     top_contracts: list[Contract]
     concentration: Concentration
     graph_totals: GraphTotals
+    giants: int
+    split: list[SplitMonth]
+    cohorts: list[Cohort]
+    funnel: Funnel
     wasm_sizes: list[SizeBucket]
     sdk_versions: list[SdkVersion]
     wasm: WasmStats

@@ -11,14 +11,17 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 
 from soroban_wrapped.api_models import (
+    Cohort,
     Concentration,
     Contract,
     Day,
     DayRecord,
+    Funnel,
     GraphTotals,
     Month,
     SdkVersion,
     SizeBucket,
+    SplitMonth,
     Totals,
     WasmStats,
     Weekday,
@@ -34,6 +37,8 @@ log = logging.getLogger("soroban_wrapped")
 WEB_DIST = ROOT / "web" / "dist"
 TTL_SECONDS = 600
 TOP_CONTRACTS = 10
+GIANTS = 3
+ACTIVE_WINDOW_DAYS = 30
 TOP_SDKS = 10
 MIN_FAILURE_DAY_TRANSACTIONS = 1_000_000
 NETWORKS = ("mainnet", "testnet")
@@ -99,6 +104,9 @@ async def build(pool, network: str) -> Wrapped:
         top,
         concentration,
         graph_totals,
+        split,
+        cohorts,
+        funnel,
         sdks,
         wasm,
         sizes,
@@ -109,7 +117,10 @@ async def build(pool, network: str) -> Wrapped:
         many("stats_weekdays", network),
         many("stats_top_contracts", network, TOP_CONTRACTS),
         one("stats_concentration", network),
-        one("stats_graph_totals", network),
+        one("stats_graph_totals", network, GIANTS),
+        many("stats_split", network, GIANTS),
+        many("stats_cohorts", network, ACTIVE_WINDOW_DAYS),
+        one("stats_funnel", network),
         many("stats_sdk_versions", network, TOP_SDKS),
         one("stats_wasm", network),
         many("stats_wasm_sizes", network),
@@ -135,6 +146,10 @@ async def build(pool, network: str) -> Wrapped:
         top_contracts=[contract(network, c) for c in top],
         concentration=Concentration(**concentration),
         graph_totals=GraphTotals(**graph_totals),
+        giants=GIANTS,
+        split=[SplitMonth(**m) for m in split],
+        cohorts=[Cohort(**c) for c in cohorts],
+        funnel=Funnel(**funnel),
         sdk_versions=[SdkVersion(**s) for s in sdks],
         wasm=WasmStats(**wasm),
         wasm_sizes=[SizeBucket(**b) for b in sizes],

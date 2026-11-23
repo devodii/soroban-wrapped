@@ -25,6 +25,18 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Cohort */
+        Cohort: {
+            /** Active */
+            active: number;
+            /** Contracts */
+            contracts: number;
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+        };
         /** Concentration */
         Concentration: {
             /** Contracts */
@@ -127,6 +139,21 @@ export interface components {
             /** Value */
             value: number;
         };
+        /** Funnel */
+        Funnel: {
+            /** Active A Month */
+            active_a_month: number;
+            /** Active Half A Year */
+            active_half_a_year: number;
+            /** Contracts */
+            contracts: number;
+            /** Median Calls */
+            median_calls: number;
+            /** Over Hundred Thousand Calls */
+            over_hundred_thousand_calls: number;
+            /** Over Thousand Calls */
+            over_thousand_calls: number;
+        };
         /** GraphTotals */
         GraphTotals: {
             /** Callees */
@@ -135,6 +162,8 @@ export interface components {
             callers: number;
             /** Calls */
             calls: number;
+            /** Giant Calls */
+            giant_calls: number;
             /** Pairs */
             pairs: number;
             /** Self Calls */
@@ -179,6 +208,18 @@ export interface components {
             /** From Kb */
             from_kb: number;
         };
+        /** SplitMonth */
+        SplitMonth: {
+            /** Giants */
+            giants: number;
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Others */
+            others: number;
+        };
         /** Totals */
         Totals: {
             /** Call Pairs */
@@ -189,6 +230,8 @@ export interface components {
             contracts_called: number;
             /** Days */
             days: number;
+            /** Failed Calls */
+            failed_calls: number;
             /** Failed Transactions */
             failed_transactions: number;
             /**
@@ -255,14 +298,19 @@ export interface components {
         };
         /** Wrapped */
         Wrapped: {
+            /** Cohorts */
+            cohorts: components["schemas"]["Cohort"][];
             concentration: components["schemas"]["Concentration"];
             /** Days */
             days: components["schemas"]["Day"][];
+            funnel: components["schemas"]["Funnel"];
             /**
              * Generated At
              * Format: date-time
              */
             generated_at: string;
+            /** Giants */
+            giants: number;
             graph_totals: components["schemas"]["GraphTotals"];
             /** Months */
             months: components["schemas"]["Month"][];
@@ -275,6 +323,8 @@ export interface components {
             records: components["schemas"]["DayRecord"][];
             /** Sdk Versions */
             sdk_versions: components["schemas"]["SdkVersion"][];
+            /** Split */
+            split: components["schemas"]["SplitMonth"][];
             /** Top Contracts */
             top_contracts: components["schemas"]["Contract"][];
             totals: components["schemas"]["Totals"];
@@ -291,15 +341,18 @@ export interface components {
     headers: never;
     pathItems: never;
 }
+export type Cohort = components['schemas']['Cohort'];
 export type Concentration = components['schemas']['Concentration'];
 export type Contract = components['schemas']['Contract'];
 export type Day = components['schemas']['Day'];
 export type DayRecord = components['schemas']['DayRecord'];
+export type Funnel = components['schemas']['Funnel'];
 export type GraphTotals = components['schemas']['GraphTotals'];
 export type HttpValidationError = components['schemas']['HTTPValidationError'];
 export type Month = components['schemas']['Month'];
 export type SdkVersion = components['schemas']['SdkVersion'];
 export type SizeBucket = components['schemas']['SizeBucket'];
+export type SplitMonth = components['schemas']['SplitMonth'];
 export type Totals = components['schemas']['Totals'];
 export type ValidationError = components['schemas']['ValidationError'];
 export type WasmStats = components['schemas']['WasmStats'];

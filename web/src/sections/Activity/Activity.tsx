@@ -42,7 +42,7 @@ export function Activity({ data }: { data: Wrapped }) {
             axis={false}
             height={150}
           />
-          <p className="sw-activity-caption">Share of transactions that fail</p>
+          <p className="sw-activity-caption">Share of all Stellar transactions that fail</p>
           <AreaTrend
             label="Failure rate"
             data={failure}

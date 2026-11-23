@@ -1,6 +1,30 @@
 {
   "components": {
     "schemas": {
+      "Cohort": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "integer"
+          },
+          "contracts": {
+            "title": "Contracts",
+            "type": "integer"
+          },
+          "month": {
+            "format": "date",
+            "title": "Month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "contracts",
+          "active"
+        ],
+        "title": "Cohort",
+        "type": "object"
+      },
       "Concentration": {
         "properties": {
           "contracts": {
@@ -275,6 +299,44 @@
         "title": "DayRecord",
         "type": "object"
       },
+      "Funnel": {
+        "properties": {
+          "active_a_month": {
+            "title": "Active A Month",
+            "type": "integer"
+          },
+          "active_half_a_year": {
+            "title": "Active Half A Year",
+            "type": "integer"
+          },
+          "contracts": {
+            "title": "Contracts",
+            "type": "integer"
+          },
+          "median_calls": {
+            "title": "Median Calls",
+            "type": "number"
+          },
+          "over_hundred_thousand_calls": {
+            "title": "Over Hundred Thousand Calls",
+            "type": "integer"
+          },
+          "over_thousand_calls": {
+            "title": "Over Thousand Calls",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "contracts",
+          "over_thousand_calls",
+          "active_a_month",
+          "active_half_a_year",
+          "over_hundred_thousand_calls",
+          "median_calls"
+        ],
+        "title": "Funnel",
+        "type": "object"
+      },
       "GraphTotals": {
         "properties": {
           "callees": {
@@ -287,6 +349,10 @@
           },
           "calls": {
             "title": "Calls",
+            "type": "integer"
+          },
+          "giant_calls": {
+            "title": "Giant Calls",
             "type": "integer"
           },
           "pairs": {
@@ -303,7 +369,8 @@
           "calls",
           "callers",
           "callees",
-          "self_calls"
+          "self_calls",
+          "giant_calls"
         ],
         "title": "GraphTotals",
         "type": "object"
@@ -401,6 +468,30 @@
         "title": "SizeBucket",
         "type": "object"
       },
+      "SplitMonth": {
+        "properties": {
+          "giants": {
+            "title": "Giants",
+            "type": "integer"
+          },
+          "month": {
+            "format": "date",
+            "title": "Month",
+            "type": "string"
+          },
+          "others": {
+            "title": "Others",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "month",
+          "giants",
+          "others"
+        ],
+        "title": "SplitMonth",
+        "type": "object"
+      },
       "Totals": {
         "properties": {
           "call_pairs": {
@@ -417,6 +508,10 @@
           },
           "days": {
             "title": "Days",
+            "type": "integer"
+          },
+          "failed_calls": {
+            "title": "Failed Calls",
             "type": "integer"
           },
           "failed_transactions": {
@@ -472,6 +567,7 @@
           "first_day",
           "last_day",
           "contracts_called",
+          "failed_calls",
           "call_pairs",
           "synced_at",
           "has_partial_day"
@@ -613,6 +709,13 @@
       },
       "Wrapped": {
         "properties": {
+          "cohorts": {
+            "items": {
+              "$ref": "#/components/schemas/Cohort"
+            },
+            "title": "Cohorts",
+            "type": "array"
+          },
           "concentration": {
             "$ref": "#/components/schemas/Concentration"
           },
@@ -623,10 +726,17 @@
             "title": "Days",
             "type": "array"
           },
+          "funnel": {
+            "$ref": "#/components/schemas/Funnel"
+          },
           "generated_at": {
             "format": "date-time",
             "title": "Generated At",
             "type": "string"
+          },
+          "giants": {
+            "title": "Giants",
+            "type": "integer"
           },
           "graph_totals": {
             "$ref": "#/components/schemas/GraphTotals"
@@ -658,6 +768,13 @@
               "$ref": "#/components/schemas/SdkVersion"
             },
             "title": "Sdk Versions",
+            "type": "array"
+          },
+          "split": {
+            "items": {
+              "$ref": "#/components/schemas/SplitMonth"
+            },
+            "title": "Split",
             "type": "array"
           },
           "top_contracts": {
@@ -699,6 +816,10 @@
           "top_contracts",
           "concentration",
           "graph_totals",
+          "giants",
+          "split",
+          "cohorts",
+          "funnel",
           "wasm_sizes",
           "sdk_versions",
           "wasm"

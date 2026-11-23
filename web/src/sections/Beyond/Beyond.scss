@@ -1,0 +1,17 @@
+@use '../../styles/tokens' as t;
+
+.sw-beyond-grid {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+
+  @include t.media(lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.sw-beyond-wide {
+  @include t.media(lg) {
+    grid-column: 1 / -1;
+  }
+}
