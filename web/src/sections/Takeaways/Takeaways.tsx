@@ -34,7 +34,15 @@ export function Takeaways({ data }: { data: Wrapped }) {
     heavy[0]!,
   )
   const label = (t: (typeof top)[number]) =>
-    t.name ?? `${t.contract_id.slice(0, 4)}…${t.contract_id.slice(-4)} (${t.top_function ?? '?'})`
+    t.name ? (
+      <>
+        {t.name} (<code className="sw-takeaways-id">{t.contract_id}</code>)
+      </>
+    ) : (
+      <>
+        <code className="sw-takeaways-id">{t.contract_id}</code> ({t.top_function ?? '?'})
+      </>
+    )
   const items: React.ReactNode[] = [
     <>
       <b>
