@@ -88,25 +88,12 @@ class Concentration(BaseModel):
     under_ten_calls: int
 
 
-class Hub(BaseModel):
-    role: Literal["callee", "caller"]
-    contract_id: str
-    partners: int
-    calls: int
-
-
 class GraphTotals(BaseModel):
     pairs: int
     calls: int
     callers: int
     callees: int
     self_calls: int
-
-
-class FunctionStat(BaseModel):
-    name: str
-    calls: int
-    contracts: int
 
 
 class SdkVersion(BaseModel):
@@ -125,32 +112,14 @@ class WasmStats(BaseModel):
     most_functions: int | None
 
 
-class Clone(BaseModel):
-    wasm_hash: str
+class ParetoPoint(BaseModel):
     contracts: int
-    size: int | None
-    sdk_version: str | None
-    function_count: int | None
-    functions: list[str]
+    share: float
 
 
-class GraphNode(BaseModel):
-    contract_id: str
-    edge_calls: int
-    invocations: int | None
-    function_count: int | None
-    functions: list[str]
-
-
-class GraphEdge(BaseModel):
-    caller: str
-    callee: str
-    calls: int
-
-
-class Graph(BaseModel):
-    nodes: list[GraphNode]
-    edges: list[GraphEdge]
+class SizeBucket(BaseModel):
+    from_kb: int
+    contracts: int
 
 
 class Wrapped(BaseModel):
@@ -163,10 +132,8 @@ class Wrapped(BaseModel):
     records: list[DayRecord]
     top_contracts: list[Contract]
     concentration: Concentration
-    hubs: list[Hub]
     graph_totals: GraphTotals
-    functions: list[FunctionStat]
+    pareto: list[ParetoPoint]
+    wasm_sizes: list[SizeBucket]
     sdk_versions: list[SdkVersion]
     wasm: WasmStats
-    clones: list[Clone]
-    graph: Graph

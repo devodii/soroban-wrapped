@@ -11,19 +11,15 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 
 from soroban_wrapped.api_models import (
-    Clone,
     Concentration,
     Contract,
     Day,
     DayRecord,
-    FunctionStat,
-    Graph,
-    GraphEdge,
-    GraphNode,
     GraphTotals,
-    Hub,
     Month,
+    ParetoPoint,
     SdkVersion,
+    SizeBucket,
     Totals,
     WasmStats,
     Weekday,
@@ -37,13 +33,9 @@ log = logging.getLogger("soroban_wrapped")
 
 WEB_DIST = ROOT / "web" / "dist"
 TTL_SECONDS = 600
-TOP_CONTRACTS = 25
-TOP_HUBS = 10
-TOP_FUNCTIONS = 20
+TOP_CONTRACTS = 10
+PARETO_AT = [1, 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 50000]
 TOP_SDKS = 10
-TOP_CLONES = 10
-GRAPH_NODES = 160
-GRAPH_EDGES = 700
 MIN_FAILURE_DAY_TRANSACTIONS = 1_000_000
 NETWORKS = ("mainnet", "testnet")
 
@@ -97,13 +89,11 @@ async def build(pool, network: str) -> Wrapped:
         weekdays,
         top,
         concentration,
-        hubs,
         graph_totals,
-        functions,
+        pareto,
         sdks,
         wasm,
-        clones,
-        nodes,
+        sizes,
     ) = await asyncio.gather(
         one("stats_totals", network),
         many("stats_days", network),
@@ -111,16 +101,12 @@ async def build(pool, network: str) -> Wrapped:
         many("stats_weekdays", network),
         many("stats_top_contracts", network, TOP_CONTRACTS),
         one("stats_concentration", network),
-        many("stats_hubs", network, TOP_HUBS),
         one("stats_graph_totals", network),
-        many("stats_functions", network, TOP_FUNCTIONS),
+        many("stats_pareto", network, PARETO_AT),
         many("stats_sdk_versions", network, TOP_SDKS),
         one("stats_wasm", network),
-        many("stats_clones", network, TOP_CLONES),
-        many("stats_graph_nodes", network, GRAPH_NODES),
+        many("stats_wasm_sizes", network),
     )
-    ids = [n["contract_id"] for n in nodes]
-    edges = await many("stats_graph_edges", network, ids, GRAPH_EDGES)
     day_models = [
         Day(
             **{k: v for k, v in d.items() if k != "status"},
@@ -141,18 +127,11 @@ async def build(pool, network: str) -> Wrapped:
         records=records(day_models),
         top_contracts=[Contract(**c) for c in top],
         concentration=Concentration(**concentration),
-        hubs=[Hub(**h) for h in hubs],
         graph_totals=GraphTotals(**graph_totals),
-        functions=[FunctionStat(**f) for f in functions],
+        pareto=[ParetoPoint(**p) for p in pareto],
         sdk_versions=[SdkVersion(**s) for s in sdks],
         wasm=WasmStats(**wasm),
-        clones=[Clone(**{**c, "functions": c["functions"] or []}) for c in clones],
-        graph=Graph(
-            nodes=[
-                GraphNode(**{**n, "functions": n["functions"] or []}) for n in nodes
-            ],
-            edges=[GraphEdge(**e) for e in edges],
-        ),
+        wasm_sizes=[SizeBucket(**b) for b in sizes],
     )
 
 

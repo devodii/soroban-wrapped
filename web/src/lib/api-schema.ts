@@ -25,21 +25,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Clone */
-        Clone: {
-            /** Contracts */
-            contracts: number;
-            /** Function Count */
-            function_count: number | null;
-            /** Functions */
-            functions: string[];
-            /** Sdk Version */
-            sdk_version: string | null;
-            /** Size */
-            size: number | null;
-            /** Wasm Hash */
-            wasm_hash: string;
-        };
         /** Concentration */
         Concentration: {
             /** Contracts */
@@ -138,44 +123,6 @@ export interface components {
             /** Value */
             value: number;
         };
-        /** FunctionStat */
-        FunctionStat: {
-            /** Calls */
-            calls: number;
-            /** Contracts */
-            contracts: number;
-            /** Name */
-            name: string;
-        };
-        /** Graph */
-        Graph: {
-            /** Edges */
-            edges: components["schemas"]["GraphEdge"][];
-            /** Nodes */
-            nodes: components["schemas"]["GraphNode"][];
-        };
-        /** GraphEdge */
-        GraphEdge: {
-            /** Callee */
-            callee: string;
-            /** Caller */
-            caller: string;
-            /** Calls */
-            calls: number;
-        };
-        /** GraphNode */
-        GraphNode: {
-            /** Contract Id */
-            contract_id: string;
-            /** Edge Calls */
-            edge_calls: number;
-            /** Function Count */
-            function_count: number | null;
-            /** Functions */
-            functions: string[];
-            /** Invocations */
-            invocations: number | null;
-        };
         /** GraphTotals */
         GraphTotals: {
             /** Callees */
@@ -193,20 +140,6 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
-        };
-        /** Hub */
-        Hub: {
-            /** Calls */
-            calls: number;
-            /** Contract Id */
-            contract_id: string;
-            /** Partners */
-            partners: number;
-            /**
-             * Role
-             * @enum {string}
-             */
-            role: "callee" | "caller";
         };
         /** Month */
         Month: {
@@ -226,6 +159,13 @@ export interface components {
             /** Transactions */
             transactions: number;
         };
+        /** ParetoPoint */
+        ParetoPoint: {
+            /** Contracts */
+            contracts: number;
+            /** Share */
+            share: number;
+        };
         /** SdkVersion */
         SdkVersion: {
             /** Contracts */
@@ -234,6 +174,13 @@ export interface components {
             invocations: number;
             /** Version */
             version: string;
+        };
+        /** SizeBucket */
+        SizeBucket: {
+            /** Contracts */
+            contracts: number;
+            /** From Kb */
+            from_kb: number;
         };
         /** Totals */
         Totals: {
@@ -311,22 +258,15 @@ export interface components {
         };
         /** Wrapped */
         Wrapped: {
-            /** Clones */
-            clones: components["schemas"]["Clone"][];
             concentration: components["schemas"]["Concentration"];
             /** Days */
             days: components["schemas"]["Day"][];
-            /** Functions */
-            functions: components["schemas"]["FunctionStat"][];
             /**
              * Generated At
              * Format: date-time
              */
             generated_at: string;
-            graph: components["schemas"]["Graph"];
             graph_totals: components["schemas"]["GraphTotals"];
-            /** Hubs */
-            hubs: components["schemas"]["Hub"][];
             /** Months */
             months: components["schemas"]["Month"][];
             /**
@@ -334,6 +274,8 @@ export interface components {
              * @enum {string}
              */
             network: "mainnet" | "testnet";
+            /** Pareto */
+            pareto: components["schemas"]["ParetoPoint"][];
             /** Records */
             records: components["schemas"]["DayRecord"][];
             /** Sdk Versions */
@@ -342,6 +284,8 @@ export interface components {
             top_contracts: components["schemas"]["Contract"][];
             totals: components["schemas"]["Totals"];
             wasm: components["schemas"]["WasmStats"];
+            /** Wasm Sizes */
+            wasm_sizes: components["schemas"]["SizeBucket"][];
             /** Weekdays */
             weekdays: components["schemas"]["Weekday"][];
         };
@@ -352,20 +296,16 @@ export interface components {
     headers: never;
     pathItems: never;
 }
-export type Clone = components['schemas']['Clone'];
 export type Concentration = components['schemas']['Concentration'];
 export type Contract = components['schemas']['Contract'];
 export type Day = components['schemas']['Day'];
 export type DayRecord = components['schemas']['DayRecord'];
-export type FunctionStat = components['schemas']['FunctionStat'];
-export type Graph = components['schemas']['Graph'];
-export type GraphEdge = components['schemas']['GraphEdge'];
-export type GraphNode = components['schemas']['GraphNode'];
 export type GraphTotals = components['schemas']['GraphTotals'];
 export type HttpValidationError = components['schemas']['HTTPValidationError'];
-export type Hub = components['schemas']['Hub'];
 export type Month = components['schemas']['Month'];
+export type ParetoPoint = components['schemas']['ParetoPoint'];
 export type SdkVersion = components['schemas']['SdkVersion'];
+export type SizeBucket = components['schemas']['SizeBucket'];
 export type Totals = components['schemas']['Totals'];
 export type ValidationError = components['schemas']['ValidationError'];
 export type WasmStats = components['schemas']['WasmStats'];

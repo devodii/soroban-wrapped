@@ -1,68 +1,6 @@
 {
   "components": {
     "schemas": {
-      "Clone": {
-        "properties": {
-          "contracts": {
-            "title": "Contracts",
-            "type": "integer"
-          },
-          "function_count": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Function Count"
-          },
-          "functions": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Functions",
-            "type": "array"
-          },
-          "sdk_version": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sdk Version"
-          },
-          "size": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Size"
-          },
-          "wasm_hash": {
-            "title": "Wasm Hash",
-            "type": "string"
-          }
-        },
-        "required": [
-          "wasm_hash",
-          "contracts",
-          "size",
-          "sdk_version",
-          "function_count",
-          "functions"
-        ],
-        "title": "Clone",
-        "type": "object"
-      },
       "Concentration": {
         "properties": {
           "contracts": {
@@ -313,126 +251,6 @@
         "title": "DayRecord",
         "type": "object"
       },
-      "FunctionStat": {
-        "properties": {
-          "calls": {
-            "title": "Calls",
-            "type": "integer"
-          },
-          "contracts": {
-            "title": "Contracts",
-            "type": "integer"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "name",
-          "calls",
-          "contracts"
-        ],
-        "title": "FunctionStat",
-        "type": "object"
-      },
-      "Graph": {
-        "properties": {
-          "edges": {
-            "items": {
-              "$ref": "#/components/schemas/GraphEdge"
-            },
-            "title": "Edges",
-            "type": "array"
-          },
-          "nodes": {
-            "items": {
-              "$ref": "#/components/schemas/GraphNode"
-            },
-            "title": "Nodes",
-            "type": "array"
-          }
-        },
-        "required": [
-          "nodes",
-          "edges"
-        ],
-        "title": "Graph",
-        "type": "object"
-      },
-      "GraphEdge": {
-        "properties": {
-          "callee": {
-            "title": "Callee",
-            "type": "string"
-          },
-          "caller": {
-            "title": "Caller",
-            "type": "string"
-          },
-          "calls": {
-            "title": "Calls",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "caller",
-          "callee",
-          "calls"
-        ],
-        "title": "GraphEdge",
-        "type": "object"
-      },
-      "GraphNode": {
-        "properties": {
-          "contract_id": {
-            "title": "Contract Id",
-            "type": "string"
-          },
-          "edge_calls": {
-            "title": "Edge Calls",
-            "type": "integer"
-          },
-          "function_count": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Function Count"
-          },
-          "functions": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Functions",
-            "type": "array"
-          },
-          "invocations": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Invocations"
-          }
-        },
-        "required": [
-          "contract_id",
-          "edge_calls",
-          "invocations",
-          "function_count",
-          "functions"
-        ],
-        "title": "GraphNode",
-        "type": "object"
-      },
       "GraphTotals": {
         "properties": {
           "callees": {
@@ -479,38 +297,6 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
-      "Hub": {
-        "properties": {
-          "calls": {
-            "title": "Calls",
-            "type": "integer"
-          },
-          "contract_id": {
-            "title": "Contract Id",
-            "type": "string"
-          },
-          "partners": {
-            "title": "Partners",
-            "type": "integer"
-          },
-          "role": {
-            "enum": [
-              "callee",
-              "caller"
-            ],
-            "title": "Role",
-            "type": "string"
-          }
-        },
-        "required": [
-          "role",
-          "contract_id",
-          "partners",
-          "calls"
-        ],
-        "title": "Hub",
-        "type": "object"
-      },
       "Month": {
         "properties": {
           "contract_calls": {
@@ -550,6 +336,24 @@
         "title": "Month",
         "type": "object"
       },
+      "ParetoPoint": {
+        "properties": {
+          "contracts": {
+            "title": "Contracts",
+            "type": "integer"
+          },
+          "share": {
+            "title": "Share",
+            "type": "number"
+          }
+        },
+        "required": [
+          "contracts",
+          "share"
+        ],
+        "title": "ParetoPoint",
+        "type": "object"
+      },
       "SdkVersion": {
         "properties": {
           "contracts": {
@@ -571,6 +375,24 @@
           "invocations"
         ],
         "title": "SdkVersion",
+        "type": "object"
+      },
+      "SizeBucket": {
+        "properties": {
+          "contracts": {
+            "title": "Contracts",
+            "type": "integer"
+          },
+          "from_kb": {
+            "title": "From Kb",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "from_kb",
+          "contracts"
+        ],
+        "title": "SizeBucket",
         "type": "object"
       },
       "Totals": {
@@ -785,13 +607,6 @@
       },
       "Wrapped": {
         "properties": {
-          "clones": {
-            "items": {
-              "$ref": "#/components/schemas/Clone"
-            },
-            "title": "Clones",
-            "type": "array"
-          },
           "concentration": {
             "$ref": "#/components/schemas/Concentration"
           },
@@ -802,30 +617,13 @@
             "title": "Days",
             "type": "array"
           },
-          "functions": {
-            "items": {
-              "$ref": "#/components/schemas/FunctionStat"
-            },
-            "title": "Functions",
-            "type": "array"
-          },
           "generated_at": {
             "format": "date-time",
             "title": "Generated At",
             "type": "string"
           },
-          "graph": {
-            "$ref": "#/components/schemas/Graph"
-          },
           "graph_totals": {
             "$ref": "#/components/schemas/GraphTotals"
-          },
-          "hubs": {
-            "items": {
-              "$ref": "#/components/schemas/Hub"
-            },
-            "title": "Hubs",
-            "type": "array"
           },
           "months": {
             "items": {
@@ -841,6 +639,13 @@
             ],
             "title": "Network",
             "type": "string"
+          },
+          "pareto": {
+            "items": {
+              "$ref": "#/components/schemas/ParetoPoint"
+            },
+            "title": "Pareto",
+            "type": "array"
           },
           "records": {
             "items": {
@@ -869,6 +674,13 @@
           "wasm": {
             "$ref": "#/components/schemas/WasmStats"
           },
+          "wasm_sizes": {
+            "items": {
+              "$ref": "#/components/schemas/SizeBucket"
+            },
+            "title": "Wasm Sizes",
+            "type": "array"
+          },
           "weekdays": {
             "items": {
               "$ref": "#/components/schemas/Weekday"
@@ -887,13 +699,11 @@
           "records",
           "top_contracts",
           "concentration",
-          "hubs",
           "graph_totals",
-          "functions",
+          "pareto",
+          "wasm_sizes",
           "sdk_versions",
-          "wasm",
-          "clones",
-          "graph"
+          "wasm"
         ],
         "title": "Wrapped",
         "type": "object"

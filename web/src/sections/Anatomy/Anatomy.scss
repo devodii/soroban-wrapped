@@ -1,0 +1,11 @@
+@use '../../styles/tokens' as t;
+
+.sw-anatomy-grid {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+
+  @include t.media(lg) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

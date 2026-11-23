@@ -1,0 +1,59 @@
+@use '../../styles/tokens' as t;
+
+.sw-summary {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-7) var(--space-4) var(--space-5);
+}
+
+.sw-summary-inner {
+  position: relative;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sw-summary-eyebrow {
+  @include t.eyebrow;
+}
+
+.sw-summary-title {
+  font-size: clamp(2.75rem, 7vw, 5.5rem);
+  line-height: 0.9;
+
+  em {
+    color: var(--brand);
+  }
+}
+
+.sw-summary-kpis {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, 1fr);
+
+  @include t.media(md) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.sw-summary-figure {
+  font-family: var(--font-heading);
+  font-size: var(--text-headline);
+  line-height: 1;
+  color: var(--brand);
+}
+
+.sw-summary-findings {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding-left: var(--space-5);
+  font-size: var(--text-lg);
+
+  b {
+    color: var(--brand);
+    font-weight: 600;
+  }
+}

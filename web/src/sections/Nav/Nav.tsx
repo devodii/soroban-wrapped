@@ -9,12 +9,9 @@ import './Nav.scss'
 export type NetworkName = 'mainnet' | 'testnet'
 
 export const SECTIONS = [
-  { id: 'pulse', label: 'Pulse' },
+  { id: 'activity', label: 'Activity' },
   { id: 'concentration', label: 'Concentration' },
-  { id: 'leaders', label: 'Leaders' },
-  { id: 'rhythm', label: 'Rhythm' },
-  { id: 'graph', label: 'Graph' },
-  { id: 'stack', label: 'Stack' },
+  { id: 'anatomy', label: 'Anatomy' },
 ]
 
 export function Nav({
