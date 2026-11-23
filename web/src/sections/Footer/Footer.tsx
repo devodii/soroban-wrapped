@@ -4,13 +4,11 @@ export function Footer() {
   return (
     <footer className="sw-footer">
       <p>
-        Built from public GitHub data and the Stellar ledger archive. Proposals come from the data,
-        not a wish list, and scores count distinct owners so copies of one template do not inflate
-        demand. Every figure here links back to its evidence.
+        Built from the public Stellar ledger archive, summarised on GitHub Actions every six hours.
+        Contract state comes from the Soroban RPC.
       </p>
       <p className="sw-footer-small">
-        Soroban Wrapped is a research index. Scores are a ranked shortlist, read the evidence before
-        acting on one.
+        Counts are calls recorded in diagnostic events. Contracts are shown by id, not by name.
       </p>
     </footer>
   )

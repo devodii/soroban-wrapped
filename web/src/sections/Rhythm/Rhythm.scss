@@ -1,0 +1,33 @@
+@use '../../styles/tokens' as t;
+
+.sw-rhythm-records {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+
+  @include t.media(sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include t.media(lg) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.sw-rhythm-value {
+  font-family: var(--font-heading);
+  font-size: var(--text-headline);
+  line-height: 1;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.sw-rhythm-unit {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--muted-foreground);
+}
+
+.sw-rhythm-weekdays {
+  margin-top: var(--space-4);
+}

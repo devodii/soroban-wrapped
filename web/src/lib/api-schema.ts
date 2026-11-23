@@ -4,349 +4,7 @@
  */
 
 export interface paths {
-    "/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Page */
-        get: operations["page__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/comments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Comments */
-        get: operations["list_comments_api_comments_get"];
-        put?: never;
-        /** Add Comment */
-        post: operations["add_comment_api_comments_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/graph": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Graph */
-        get: operations["get_graph_api_graph_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/overview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Overview */
-        get: operations["get_overview_api_overview_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/repo": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Repo */
-        get: operations["get_repo_api_repo_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/chain/activity": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Chain Activity */
-        get: operations["chain_activity_api_v2_chain_activity_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/chain/top": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Chain Top */
-        get: operations["chain_top_api_v2_chain_top_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/comments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Comments */
-        get: operations["comments_api_v2_comments_get"];
-        put?: never;
-        /** Add Comment */
-        post: operations["add_comment_api_v2_comments_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/contracts/{network}/{contract_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Contract */
-        get: operations["contract_api_v2_contracts__network___contract_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/graph": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Graph */
-        get: operations["graph_api_v2_graph_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/needs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Needs */
-        get: operations["needs_api_v2_needs_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/needs/{need_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Need */
-        get: operations["need_api_v2_needs__need_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/neighbours": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Neighbours */
-        get: operations["neighbours_api_v2_neighbours_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/patterns": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Patterns */
-        get: operations["patterns_api_v2_patterns_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/proposals": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Proposals */
-        get: operations["proposals_api_v2_proposals_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/proposals/{proposal_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Proposal */
-        get: operations["proposal_api_v2_proposals__proposal_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/proposals/{proposal_id}/contracts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Proposal Contracts */
-        get: operations["proposal_contracts_api_v2_proposals__proposal_id__contracts_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/repos": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Repos */
-        get: operations["repos_api_v2_repos_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/repos/{owner}/{name}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Repo */
-        get: operations["repo_api_v2_repos__owner___name__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Search */
-        get: operations["search_api_v2_search_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/wrapped": {
+    "/api/wrapped/{network}": {
         parameters: {
             query?: never;
             header?: never;
@@ -354,24 +12,7 @@ export interface paths {
             cookie?: never;
         };
         /** Wrapped */
-        get: operations["wrapped_api_v2_wrapped_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/report": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Report */
-        get: operations["report_report_get"];
+        get: operations["wrapped_api_wrapped__network__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -384,35 +25,84 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Affected */
-        Affected: {
-            /** Repos */
-            repos: number;
-            /** Stack */
-            stack: string;
+        /** Clone */
+        Clone: {
+            /** Contracts */
+            contracts: number;
+            /** Function Count */
+            function_count: number | null;
+            /** Functions */
+            functions: string[];
+            /** Sdk Version */
+            sdk_version: string | null;
+            /** Size */
+            size: number | null;
+            /** Wasm Hash */
+            wasm_hash: string;
         };
-        /** BugClass */
-        BugClass: {
-            /** Description */
-            description: string;
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Severity */
-            severity: string;
+        /** Concentration */
+        Concentration: {
+            /** Contracts */
+            contracts: number;
+            /** Contracts For Half */
+            contracts_for_half: number;
+            /** Contracts For Ninety */
+            contracts_for_ninety: number;
+            /** One Day Contracts */
+            one_day_contracts: number;
+            /** Top 1 */
+            top_1: number;
+            /** Top 10 */
+            top_10: number;
+            /** Top 100 */
+            top_100: number;
+            /** Total Calls */
+            total_calls: number;
+            /** Under Ten Calls */
+            under_ten_calls: number;
         };
-        /** ChainActivity */
-        ChainActivity: {
-            /** Days */
-            days: components["schemas"]["ChainDay"][];
-            /** First Day */
-            first_day: string | null;
-            /** Last Day */
-            last_day: string | null;
+        /** Contract */
+        Contract: {
+            /** Active Days */
+            active_days: number;
+            /** Contract Id */
+            contract_id: string;
+            /**
+             * First Day
+             * Format: date
+             */
+            first_day: string;
+            /** Function Count */
+            function_count: number | null;
+            /** Invocations */
+            invocations: number;
+            /**
+             * Last Day
+             * Format: date
+             */
+            last_day: string;
+            /** Live */
+            live: boolean | null;
+            /** Peak Daily Accounts */
+            peak_daily_accounts: number;
+            /**
+             * Peak Day
+             * Format: date
+             */
+            peak_day: string;
+            /** Peak Invocations */
+            peak_invocations: number;
+            /** Sdk Version */
+            sdk_version: string | null;
+            /** Successful */
+            successful: number;
+            /** Top Function */
+            top_function: string | null;
+            /** Wasm Size */
+            wasm_size: number | null;
         };
-        /** ChainDay */
-        ChainDay: {
+        /** Day */
+        Day: {
             /** Contract Calls */
             contract_calls: number;
             /** Contracts Called */
@@ -426,948 +116,157 @@ export interface components {
             failed_transactions: number;
             /** Ledgers */
             ledgers: number;
-            /** Network */
-            network: string;
             /** Operations */
             operations: number;
+            /** Partial */
+            partial: boolean;
             /** Transactions */
             transactions: number;
         };
-        /** ChainTop */
-        ChainTop: {
-            /** Contracts */
-            contracts: components["schemas"]["TopContract"][];
-            /** Edges */
-            edges: components["schemas"]["TopEdge"][];
-            /**
-             * Warming
-             * @default false
-             */
-            warming: boolean;
-        };
-        /** CodeSample */
-        CodeSample: {
-            /** End */
-            end?: number | null;
-            /** Path */
-            path?: string | null;
-            /** Repo */
-            repo?: string | null;
-            /** Snippet */
-            snippet?: string | null;
-            /** Start */
-            start?: number | null;
-        };
-        /** Comment */
-        Comment: {
-            /** Author */
-            author: string;
-            /** Body */
-            body: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Id */
-            id: number;
-        };
-        /** CommentCreate */
-        CommentCreate: {
-            /**
-             * Author
-             * @default anonymous
-             */
-            author: string;
-            /** Body */
-            body: string;
-            /** Target Id */
-            target_id: string;
-            /**
-             * Target Kind
-             * @enum {string}
-             */
-            target_kind: "repo" | "proposal" | "pattern" | "contract" | "node" | "need" | "tool";
-        };
-        /** CommentIn */
-        CommentIn: {
-            /**
-             * Author
-             * @default anonymous
-             */
-            author: string;
-            /** Body */
-            body: string;
-            /** Target Id */
-            target_id: string;
-            /** Target Kind */
-            target_kind: string;
-        };
-        /** ContractDay */
-        ContractDay: {
-            /** Callers */
-            callers: number;
+        /** DayRecord */
+        DayRecord: {
             /**
              * Day
              * Format: date
              */
             day: string;
-            /** Invocations */
-            invocations: number;
-            /** Successful */
-            successful: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "most_calls" | "most_transactions" | "highest_failure_rate" | "lowest_failure_rate" | "biggest_jump" | "quietest";
+            /** Value */
+            value: number;
         };
-        /** ContractDetail */
-        ContractDetail: {
-            /** Contract Id */
-            contract_id: string;
-            /** Days */
-            days: components["schemas"]["ContractDay"][];
-            /** Executable */
-            executable: string;
-            /** Function Names */
-            function_names: string[];
-            /** Invocations */
-            invocations: number;
-            /** Live */
-            live: boolean;
-            /** Live Until Ledger */
-            live_until_ledger: number | null;
-            /** Network */
-            network: string;
-            /** Repos */
-            repos: components["schemas"]["RepoRef"][];
-            /** Sdk Version */
-            sdk_version: string | null;
-            /** Source Repo */
-            source_repo: string | null;
-            /** Wasm Hash */
-            wasm_hash: string | null;
-            /** Wasm Size */
-            wasm_size: number | null;
-        };
-        /** ContractRef */
-        ContractRef: {
-            /** Contract Id */
-            contract_id: string;
-            /** Link */
-            link: string;
-            /** Live */
-            live: boolean;
-            /** Network */
-            network: string;
-            /** Repo */
-            repo?: string | null;
-        };
-        /** Evidence */
-        Evidence: {
-            /** Created At */
-            created_at: string | null;
-            /** Kind */
-            kind: string;
-            /** Ref */
-            ref: string;
-            /** Relevance */
-            relevance: number;
-            /** Repo */
-            repo: string | null;
-            /** Snippet */
-            snippet: string | null;
-            /** Title */
-            title: string | null;
-            /** Url */
-            url: string | null;
-        };
-        /** EvidenceCount */
-        EvidenceCount: {
-            /** Kind */
-            kind: string;
-            /** Total */
-            total: number;
-        };
-        /** ExistingTool */
-        ExistingTool: {
-            /** Id */
-            id: string;
+        /** FunctionStat */
+        FunctionStat: {
+            /** Calls */
+            calls: number;
+            /** Contracts */
+            contracts: number;
             /** Name */
             name: string;
-            /** Relation */
-            relation: string;
-            /** Url */
-            url?: string | null;
         };
-        /** FixExample */
-        FixExample: {
-            /** Date */
-            date: string;
-            /** Message */
-            message: string;
-            /** Repo */
-            repo: string;
-            /** Sha */
-            sha: string;
-        };
-        /** GapEvidence */
-        GapEvidence: {
-            /**
-             * Comments
-             * @default 0
-             */
-            comments: number;
-            /**
-             * Reactions
-             * @default 0
-             */
-            reactions: number;
-            /** Title */
-            title: string;
-            /** Url */
-            url: string;
-        };
-        /** GapItem */
-        GapItem: {
-            /**
-             * Coverage
-             * @default 0
-             */
-            coverage: number;
-            /**
-             * Evidence
-             * @default []
-             */
-            evidence: components["schemas"]["GapEvidence"][];
-            /** Item */
-            item: string;
-            /** Status */
-            status: string;
-        };
-        /** GapTool */
-        GapTool: {
-            /**
-             * Items
-             * @default []
-             */
-            items: components["schemas"]["GapItem"][];
-            /** Name */
-            name: string;
-            /**
-             * Reasons
-             * @default []
-             */
-            reasons: string[];
-            /** Summary */
-            summary: string;
-            /** Tool */
-            tool: string;
-            /** Url */
-            url?: string | null;
-            /** Verdict */
-            verdict: string;
+        /** Graph */
+        Graph: {
+            /** Edges */
+            edges: components["schemas"]["GraphEdge"][];
+            /** Nodes */
+            nodes: components["schemas"]["GraphNode"][];
         };
         /** GraphEdge */
         GraphEdge: {
-            /** Dst */
-            dst: string;
-            /** Kind */
-            kind: string;
-            /** Src */
-            src: string;
-            /**
-             * Weight
-             * @default 1
-             */
-            weight: number;
-        };
-        /** GraphNode */
-        GraphNode: {
-            /**
-             * Degree
-             * @default 0
-             */
-            degree: number;
-            /** Id */
-            id: string;
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "proposal" | "repo" | "contract" | "library" | "bug_class";
-            /** Label */
-            label: string;
-            /** Language */
-            language?: string | null;
-            /** Link */
-            link?: string | null;
-            /** Live */
-            live?: boolean | null;
-            /** Network */
-            network?: ("mainnet" | "testnet" | "both") | null;
-            /** Origin */
-            origin?: string | null;
-            /** Pushed At */
-            pushed_at?: string | null;
-            /**
-             * Score
-             * @default 0
-             */
-            score: number;
-            /** Stars */
-            stars?: number | null;
-            /** Status */
-            status?: string | null;
-            /**
-             * Weight
-             * @description score normalised within its kind
-             * @default 0
-             */
-            weight: number;
-        };
-        /** GraphResponse */
-        GraphResponse: {
-            /** Edges */
-            edges: components["schemas"]["GraphEdge"][];
-            /** Nodes */
-            nodes: components["schemas"]["GraphNode"][];
-            /**
-             * Scope
-             * @enum {string}
-             */
-            scope: "ecosystem" | "chain";
-            /** Total Edges */
-            total_edges: number;
-            /** Total Nodes */
-            total_nodes: number;
-            /** Truncated */
-            truncated: boolean;
-            /**
-             * Warming
-             * @default false
-             */
-            warming: boolean;
-        };
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail?: components["schemas"]["ValidationError"][];
-        };
-        /** Highlight */
-        Highlight: {
-            /** Kind */
-            kind: string;
-            /**
-             * Relevance
-             * @default 0
-             */
-            relevance: number;
-            /** Repo */
-            repo?: string | null;
-            /** Snippet */
-            snippet?: string | null;
-            /** Title */
-            title?: string | null;
-            /** Url */
-            url?: string | null;
-        };
-        /** NeedDetail */
-        NeedDetail: {
-            /** Category */
-            category: string;
-            /** Comments */
-            comments: number;
-            /**
-             * Components
-             * @default {}
-             */
-            components: {
-                [key: string]: number;
-            };
-            /** Demand */
-            demand: {
-                [key: string]: number;
-            };
-            /** Evidence */
-            evidence: components["schemas"]["Evidence"][];
-            /** Evidence Counts */
-            evidence_counts: components["schemas"]["EvidenceCount"][];
-            /**
-             * Evidence Rows
-             * @default {}
-             */
-            evidence_rows: {
-                [key: string]: number;
-            };
-            /** Id */
-            id: string;
-            /** Origin */
-            origin: string;
-            rfp: components["schemas"]["Rfp"];
-            /** Score */
-            score: number;
-            /** Scored At */
-            scored_at: string | null;
-            /** Status */
-            status: string;
-            /** Summary */
-            summary: string;
-            /** Title */
-            title: string;
-            /** Tools */
-            tools: components["schemas"]["ToolRef"][];
-        };
-        /** NeedItem */
-        NeedItem: {
-            /** Category */
-            category: string;
-            /** Comments */
-            comments: number;
-            /**
-             * Components
-             * @default {}
-             */
-            components: {
-                [key: string]: number;
-            };
-            /** Custom Repos */
-            custom_repos: number;
-            /** Id */
-            id: string;
-            /** Issues */
-            issues: number;
-            /** Open Issues */
-            open_issues: number;
-            /** Origin */
-            origin: string;
-            /** Owners */
-            owners: number;
-            /** Pain Issues */
-            pain_issues: number;
-            /** Pain Owners */
-            pain_owners: number;
-            /** Priority */
-            priority: string | null;
-            /** Questions */
-            questions: number;
-            /** Repos */
-            repos: number;
-            /** Score */
-            score: number;
-            /** Status */
-            status: string;
-            /** Summary */
-            summary: string;
-            /** Title */
-            title: string;
-            /**
-             * Tools
-             * @default []
-             */
-            tools: string[];
-        };
-        /** NeighbourResponse */
-        NeighbourResponse: {
-            center?: components["schemas"]["GraphNode"] | null;
-            /** Edges */
-            edges: components["schemas"]["GraphEdge"][];
-            /** Id */
-            id: string;
-            /** Nodes */
-            nodes: components["schemas"]["GraphNode"][];
-        };
-        /** PatternItem */
-        PatternItem: {
-            /** Category */
-            category: string;
-            /** Description */
-            description: string;
-            /** Diff */
-            diff: string | null;
-            /** Id */
-            id: string;
-            /** Occurrences */
-            occurrences: number;
-            /** Origin */
-            origin: string;
-            /**
-             * Proposals
-             * @default []
-             */
-            proposals: string[];
-            /** Repos */
-            repos: number;
-            /** Sample */
-            sample: string | null;
-            /** Sample Path */
-            sample_path: string | null;
-            /** Sample Repo */
-            sample_repo: string | null;
-            /** Status */
-            status: string;
-        };
-        /** PatternList */
-        PatternList: {
-            /** Items */
-            items: components["schemas"]["PatternItem"][];
-            /**
-             * Warming
-             * @default false
-             */
-            warming: boolean;
-        };
-        /** PatternRef */
-        PatternRef: {
-            /** Category */
-            category: string;
-            /** Description */
-            description: string;
-            /** Id */
-            id: string;
-            /** Role */
-            role: string;
-        };
-        /** ProposalDetail */
-        ProposalDetail: {
-            /** Bug Classes */
-            bug_classes: components["schemas"]["BugClass"][];
-            /** Comments */
-            comments: number;
-            /**
-             * Components
-             * @default {}
-             */
-            components: {
-                [key: string]: number;
-            };
-            /** Copy Share */
-            copy_share: number;
-            /** Covered By */
-            covered_by: string[];
-            /** Fix Commits */
-            fix_commits: number;
-            /**
-             * Fix Examples
-             * @default []
-             */
-            fix_examples: components["schemas"]["FixExample"][];
-            /** Id */
-            id: string;
-            /** Kind */
-            kind: string;
-            /** Linked Repo Total */
-            linked_repo_total: number;
-            /** Linked Repos */
-            linked_repos: components["schemas"]["RepoRef"][];
-            /** Mainnet Repos */
-            mainnet_repos: number;
-            /**
-             * Metrics
-             * @default {}
-             */
-            metrics: {
-                [key: string]: number;
-            };
-            /** Name */
-            name: string;
-            /** Occurrences */
-            occurrences: number;
-            /** Origin */
-            origin: string;
-            /** Owners */
-            owners: number;
-            /** Patterns */
-            patterns: components["schemas"]["PatternRef"][];
-            /** Repos */
-            repos: number;
-            /**
-             * Roles
-             * @default {}
-             */
-            roles: {
-                [key: string]: {
-                    [key: string]: number;
-                };
-            };
-            sample?: components["schemas"]["CodeSample"] | null;
-            /** Score */
-            score: number;
-            /** Scored At */
-            scored_at: string | null;
-            /**
-             * Share Of Repos
-             * @default 0
-             */
-            share_of_repos: number;
-            /** Sketch */
-            sketch: string | null;
-            /** Status */
-            status: string;
-            /** Summary */
-            summary: string;
-            /**
-             * Thresholds
-             * @default {}
-             */
-            thresholds: {
-                [key: string]: number;
-            };
-            /**
-             * Weighted
-             * @default {}
-             */
-            weighted: {
-                [key: string]: number;
-            };
-        };
-        /** ProposalItem */
-        ProposalItem: {
-            /** Comments */
-            comments: number;
-            /**
-             * Components
-             * @default {}
-             */
-            components: {
-                [key: string]: number;
-            };
-            /** Copy Share */
-            copy_share: number;
-            /** Covered By */
-            covered_by: string[];
-            /** Fix Commits */
-            fix_commits: number;
-            /** Id */
-            id: string;
-            /** Kind */
-            kind: string;
-            /** Mainnet Repos */
-            mainnet_repos: number;
-            /** Name */
-            name: string;
-            /** Occurrences */
-            occurrences: number;
-            /** Origin */
-            origin: string;
-            /** Owners */
-            owners: number;
-            /** Repos */
-            repos: number;
-            /** Score */
-            score: number;
-            /** Status */
-            status: string;
-            /** Summary */
-            summary: string;
-            /**
-             * Weighted
-             * @default {}
-             */
-            weighted: {
-                [key: string]: number;
-            };
-        };
-        /** RepoDetail */
-        RepoDetail: {
-            /** Archived */
-            archived: boolean;
-            /** Comments */
-            comments: number;
-            /** Contract Crates */
-            contract_crates: number;
-            /** Contracts */
-            contracts: components["schemas"]["ContractRef"][];
-            /** Created At */
-            created_at: string | null;
-            /** Description */
-            description: string | null;
-            /** Forks */
-            forks: number;
-            /** Full Name */
-            full_name: string;
-            /** Homepage */
-            homepage: string | null;
-            /** Is Fork */
-            is_fork: boolean;
-            /** Is Soroban */
-            is_soroban: boolean;
-            /** Is Stellar */
-            is_stellar: boolean;
-            /** Language */
-            language: string | null;
-            /** Languages */
-            languages: {
-                [key: string]: number;
-            };
-            /** License */
-            license: string | null;
-            /** Needs */
-            needs: components["schemas"]["RepoNeed"][];
-            /** Networks */
-            networks: string[];
-            /** Open Issues */
-            open_issues: number;
-            /** Owner */
-            owner: string;
-            /** Patterns */
-            patterns: components["schemas"]["RepoPattern"][];
-            /** Proposals */
-            proposals: components["schemas"]["RepoProposal"][];
-            /** Pushed At */
-            pushed_at: string | null;
-            /** Rust Files */
-            rust_files: number;
-            /** Rust Loc */
-            rust_loc: number;
-            /** Size Kb */
-            size_kb: number;
-            /** Stack */
-            stack: string[];
-            /** Stars */
-            stars: number;
-            /** Stellar Libs */
-            stellar_libs: string[];
-            /** Topics */
-            topics: string[];
-            /** Total Commits */
-            total_commits: number | null;
-            /** Url */
-            url: string;
-            /** Window Commits */
-            window_commits: number | null;
-        };
-        /** RepoItem */
-        RepoItem: {
-            /** Description */
-            description: string | null;
-            /** Full Name */
-            full_name: string;
-            /** Is Soroban */
-            is_soroban: boolean;
-            /** Is Stellar */
-            is_stellar: boolean;
-            /** Language */
-            language: string | null;
-            /** Networks */
-            networks: string[];
-            /** Proposals */
-            proposals: number;
-            /** Pushed At */
-            pushed_at: string | null;
-            /** Rust Loc */
-            rust_loc: number;
-            /** Stars */
-            stars: number;
-            /** Topics */
-            topics: string[];
-            /** Window Commits */
-            window_commits: number | null;
-        };
-        /** RepoList */
-        RepoList: {
-            /** Items */
-            items: components["schemas"]["RepoItem"][];
-            /** Total */
-            total: number;
-        };
-        /** RepoNeed */
-        RepoNeed: {
-            /** Evidence */
-            evidence: number;
-            /** Id */
-            id: string;
-            /** Relevance */
-            relevance: number;
-            /** Title */
-            title: string;
-        };
-        /** RepoPattern */
-        RepoPattern: {
-            /** Category */
-            category: string;
-            /** Id */
-            id: string;
-            /** Occurrences */
-            occurrences: number;
-            /** Sample */
-            sample: string | null;
-            /** Sample Path */
-            sample_path: string | null;
-        };
-        /** RepoProposal */
-        RepoProposal: {
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Origin */
-            origin: string;
-            /** Score */
-            score: number;
-            /** Status */
-            status: string;
-            /** Weight */
-            weight: number;
-        };
-        /** RepoRef */
-        RepoRef: {
-            /** Description */
-            description?: string | null;
-            /** Full Name */
-            full_name: string;
-            /** Language */
-            language: string | null;
-            /** Networks */
-            networks: string[];
-            /** Pushed At */
-            pushed_at: string | null;
-            /** Stars */
-            stars: number;
-            /**
-             * Weight
-             * @default 0
-             */
-            weight: number;
-        };
-        /** Rfp */
-        Rfp: {
-            /**
-             * Deliverables
-             * @default []
-             */
-            deliverables: string[];
-            /**
-             * Evidence Highlights
-             * @default []
-             */
-            evidence_highlights: components["schemas"]["Highlight"][];
-            /**
-             * Existing Tools
-             * @default []
-             */
-            existing_tools: components["schemas"]["ExistingTool"][];
-            /**
-             * Gap
-             * @default
-             */
-            gap: string;
-            /**
-             * Gap Analysis
-             * @default []
-             */
-            gap_analysis: components["schemas"]["GapTool"][];
-            /**
-             * Priority
-             * @default
-             */
-            priority: string;
-            /**
-             * Problem
-             * @default
-             */
-            problem: string;
-            /**
-             * Success Metrics
-             * @default []
-             */
-            success_metrics: string[];
-            /**
-             * Title
-             * @default
-             */
-            title: string;
-            /**
-             * Who Is Affected
-             * @default []
-             */
-            who_is_affected: components["schemas"]["Affected"][];
-        };
-        /** SearchHit */
-        SearchHit: {
-            /** Id */
-            id: string;
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "proposal" | "need" | "pattern" | "repo" | "tool" | "contract";
-            /** Label */
-            label: string;
-            /**
-             * Score
-             * @default 0
-             */
-            score: number;
-            /** Sub */
-            sub: string;
-        };
-        /** SearchResponse */
-        SearchResponse: {
-            /** Hits */
-            hits: components["schemas"]["SearchHit"][];
-            /** Q */
-            q: string;
-        };
-        /** ToolRef */
-        ToolRef: {
-            /** Category */
-            category: string;
-            /** Description */
-            description: string;
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Relation */
-            relation: string;
-            /** Relevance */
-            relevance: number;
-            /** Url */
-            url: string | null;
-        };
-        /** TopContract */
-        TopContract: {
-            /** Active Days */
-            active_days: number;
-            /** Contract Id */
-            contract_id: string;
-            /**
-             * First Day
-             * Format: date
-             */
-            first_day: string;
-            /** Invocations */
-            invocations: number;
-            /**
-             * Last Day
-             * Format: date
-             */
-            last_day: string;
-            /** Live */
-            live: boolean | null;
-            /** Network */
-            network: string;
-            /** Peak Daily Callers */
-            peak_daily_callers: number;
-            /**
-             * Repos
-             * @default []
-             */
-            repos: string[];
-            /** Successful */
-            successful: number;
-        };
-        /** TopEdge */
-        TopEdge: {
-            /** Active Days */
-            active_days: number;
             /** Callee */
             callee: string;
             /** Caller */
             caller: string;
             /** Calls */
             calls: number;
-            /** Network */
-            network: string;
-            /** Successful */
-            successful: number;
+        };
+        /** GraphNode */
+        GraphNode: {
+            /** Contract Id */
+            contract_id: string;
+            /** Edge Calls */
+            edge_calls: number;
+            /** Function Count */
+            function_count: number | null;
+            /** Functions */
+            functions: string[];
+            /** Invocations */
+            invocations: number | null;
+        };
+        /** GraphTotals */
+        GraphTotals: {
+            /** Callees */
+            callees: number;
+            /** Callers */
+            callers: number;
+            /** Calls */
+            calls: number;
+            /** Pairs */
+            pairs: number;
+            /** Self Calls */
+            self_calls: number;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /** Hub */
+        Hub: {
+            /** Calls */
+            calls: number;
+            /** Contract Id */
+            contract_id: string;
+            /** Partners */
+            partners: number;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "callee" | "caller";
+        };
+        /** Month */
+        Month: {
+            /** Contract Calls */
+            contract_calls: number;
+            /** Failed Transactions */
+            failed_transactions: number;
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** New Contracts */
+            new_contracts: number;
+            /** Peak Contracts Called */
+            peak_contracts_called: number;
+            /** Transactions */
+            transactions: number;
+        };
+        /** SdkVersion */
+        SdkVersion: {
+            /** Contracts */
+            contracts: number;
+            /** Invocations */
+            invocations: number;
+            /** Version */
+            version: string;
+        };
+        /** Totals */
+        Totals: {
+            /** Call Pairs */
+            call_pairs: number;
+            /** Contract Calls */
+            contract_calls: number;
+            /** Contracts Called */
+            contracts_called: number;
+            /** Days */
+            days: number;
+            /** Failed Transactions */
+            failed_transactions: number;
+            /**
+             * First Day
+             * Format: date
+             */
+            first_day: string;
+            /** Has Partial Day */
+            has_partial_day: boolean;
+            /**
+             * Last Day
+             * Format: date
+             */
+            last_day: string;
+            /** Ledgers */
+            ledgers: number;
+            /** Operations */
+            operations: number;
+            /** Synced At */
+            synced_at: string | null;
+            /** Transactions */
+            transactions: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -1382,62 +281,69 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** WasmStats */
+        WasmStats: {
+            /** Average Wasm */
+            average_wasm: number | null;
+            /** Contracts */
+            contracts: number;
+            /** Expired */
+            expired: number;
+            /** Largest Wasm */
+            largest_wasm: number | null;
+            /** Live */
+            live: number;
+            /** Most Functions */
+            most_functions: number | null;
+            /** Wasm Modules */
+            wasm_modules: number;
+        };
+        /** Weekday */
+        Weekday: {
+            /** Contract Calls */
+            contract_calls: number;
+            /** Failure Percent */
+            failure_percent: number;
+            /** Transactions */
+            transactions: number;
+            /** Weekday */
+            weekday: number;
+        };
         /** Wrapped */
         Wrapped: {
-            /**
-             * Chain Warming
-             * @default false
-             */
-            chain_warming: boolean;
-            /** Comments */
-            comments: number;
-            /** Commits */
-            commits: number;
+            /** Clones */
+            clones: components["schemas"]["Clone"][];
+            concentration: components["schemas"]["Concentration"];
             /** Days */
-            days: components["schemas"]["ChainDay"][];
-            /** First Day */
-            first_day: string | null;
+            days: components["schemas"]["Day"][];
             /** Functions */
-            functions: number;
-            /** Issues */
-            issues: number;
-            /** Last Day */
-            last_day: string | null;
-            /** Live Contracts */
-            live_contracts: number;
-            /** Mainnet Contracts */
-            mainnet_contracts: number;
-            /** Mainnet Repos */
-            mainnet_repos: number;
-            /** Needs */
-            needs: number;
-            /** Patterns */
-            patterns: number;
+            functions: components["schemas"]["FunctionStat"][];
             /**
-             * Patterns Warming
-             * @default false
+             * Generated At
+             * Format: date-time
              */
-            patterns_warming: boolean;
-            /** Proposals */
-            proposals: number;
-            /** Soroban Repos */
-            soroban_repos: number;
-            /** Stellar Repos */
-            stellar_repos: number;
-            /** Testnet Contracts */
-            testnet_contracts: number;
-            /** Testnet Repos */
-            testnet_repos: number;
+            generated_at: string;
+            graph: components["schemas"]["Graph"];
+            graph_totals: components["schemas"]["GraphTotals"];
+            /** Hubs */
+            hubs: components["schemas"]["Hub"][];
+            /** Months */
+            months: components["schemas"]["Month"][];
+            /**
+             * Network
+             * @enum {string}
+             */
+            network: "mainnet" | "testnet";
+            /** Records */
+            records: components["schemas"]["DayRecord"][];
+            /** Sdk Versions */
+            sdk_versions: components["schemas"]["SdkVersion"][];
             /** Top Contracts */
-            top_contracts: components["schemas"]["TopContract"][];
-            /** Top Edges */
-            top_edges: components["schemas"]["TopEdge"][];
-            /** Top Needs */
-            top_needs: components["schemas"]["NeedItem"][];
-            /** Top Patterns */
-            top_patterns: components["schemas"]["PatternItem"][];
-            /** Top Proposals */
-            top_proposals: components["schemas"]["ProposalItem"][];
+            top_contracts: components["schemas"]["Contract"][];
+            totals: components["schemas"]["Totals"];
+            wasm: components["schemas"]["WasmStats"];
+            /** Weekdays */
+            weekdays: components["schemas"]["Weekday"][];
         };
     };
     responses: never;
@@ -1446,691 +352,34 @@ export interface components {
     headers: never;
     pathItems: never;
 }
-export type Affected = components['schemas']['Affected'];
-export type BugClass = components['schemas']['BugClass'];
-export type ChainActivity = components['schemas']['ChainActivity'];
-export type ChainDay = components['schemas']['ChainDay'];
-export type ChainTop = components['schemas']['ChainTop'];
-export type CodeSample = components['schemas']['CodeSample'];
-export type Comment = components['schemas']['Comment'];
-export type CommentCreate = components['schemas']['CommentCreate'];
-export type CommentIn = components['schemas']['CommentIn'];
-export type ContractDay = components['schemas']['ContractDay'];
-export type ContractDetail = components['schemas']['ContractDetail'];
-export type ContractRef = components['schemas']['ContractRef'];
-export type Evidence = components['schemas']['Evidence'];
-export type EvidenceCount = components['schemas']['EvidenceCount'];
-export type ExistingTool = components['schemas']['ExistingTool'];
-export type FixExample = components['schemas']['FixExample'];
-export type GapEvidence = components['schemas']['GapEvidence'];
-export type GapItem = components['schemas']['GapItem'];
-export type GapTool = components['schemas']['GapTool'];
+export type Clone = components['schemas']['Clone'];
+export type Concentration = components['schemas']['Concentration'];
+export type Contract = components['schemas']['Contract'];
+export type Day = components['schemas']['Day'];
+export type DayRecord = components['schemas']['DayRecord'];
+export type FunctionStat = components['schemas']['FunctionStat'];
+export type Graph = components['schemas']['Graph'];
 export type GraphEdge = components['schemas']['GraphEdge'];
 export type GraphNode = components['schemas']['GraphNode'];
-export type GraphResponse = components['schemas']['GraphResponse'];
+export type GraphTotals = components['schemas']['GraphTotals'];
 export type HttpValidationError = components['schemas']['HTTPValidationError'];
-export type Highlight = components['schemas']['Highlight'];
-export type NeedDetail = components['schemas']['NeedDetail'];
-export type NeedItem = components['schemas']['NeedItem'];
-export type NeighbourResponse = components['schemas']['NeighbourResponse'];
-export type PatternItem = components['schemas']['PatternItem'];
-export type PatternList = components['schemas']['PatternList'];
-export type PatternRef = components['schemas']['PatternRef'];
-export type ProposalDetail = components['schemas']['ProposalDetail'];
-export type ProposalItem = components['schemas']['ProposalItem'];
-export type RepoDetail = components['schemas']['RepoDetail'];
-export type RepoItem = components['schemas']['RepoItem'];
-export type RepoList = components['schemas']['RepoList'];
-export type RepoNeed = components['schemas']['RepoNeed'];
-export type RepoPattern = components['schemas']['RepoPattern'];
-export type RepoProposal = components['schemas']['RepoProposal'];
-export type RepoRef = components['schemas']['RepoRef'];
-export type Rfp = components['schemas']['Rfp'];
-export type SearchHit = components['schemas']['SearchHit'];
-export type SearchResponse = components['schemas']['SearchResponse'];
-export type ToolRef = components['schemas']['ToolRef'];
-export type TopContract = components['schemas']['TopContract'];
-export type TopEdge = components['schemas']['TopEdge'];
+export type Hub = components['schemas']['Hub'];
+export type Month = components['schemas']['Month'];
+export type SdkVersion = components['schemas']['SdkVersion'];
+export type Totals = components['schemas']['Totals'];
 export type ValidationError = components['schemas']['ValidationError'];
+export type WasmStats = components['schemas']['WasmStats'];
+export type Weekday = components['schemas']['Weekday'];
 export type Wrapped = components['schemas']['Wrapped'];
 export type $defs = Record<string, never>;
 export interface operations {
-    page__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    list_comments_api_comments_get: {
-        parameters: {
-            query: {
-                target_kind: string;
-                target_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    add_comment_api_comments_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CommentIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_graph_api_graph_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    get_overview_api_overview_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_repo_api_repo_get: {
-        parameters: {
-            query: {
-                name: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    chain_activity_api_v2_chain_activity_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChainActivity"];
-                };
-            };
-        };
-    };
-    chain_top_api_v2_chain_top_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChainTop"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    comments_api_v2_comments_get: {
-        parameters: {
-            query: {
-                target_kind: string;
-                target_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Comment"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    add_comment_api_v2_comments_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CommentCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Comment"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    contract_api_v2_contracts__network___contract_id__get: {
+    wrapped_api_wrapped__network__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                network: string;
-                contract_id: string;
+                network: "mainnet" | "testnet";
             };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ContractDetail"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    graph_api_v2_graph_get: {
-        parameters: {
-            query?: {
-                scope?: "ecosystem" | "chain";
-                focus?: string | null;
-                limit?: number;
-                network?: ("mainnet" | "testnet") | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GraphResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    needs_api_v2_needs_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NeedItem"][];
-                };
-            };
-        };
-    };
-    need_api_v2_needs__need_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                need_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NeedDetail"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    neighbours_api_v2_neighbours_get: {
-        parameters: {
-            query: {
-                id: string;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NeighbourResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patterns_api_v2_patterns_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PatternList"];
-                };
-            };
-        };
-    };
-    proposals_api_v2_proposals_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProposalItem"][];
-                };
-            };
-        };
-    };
-    proposal_api_v2_proposals__proposal_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                proposal_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProposalDetail"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    proposal_contracts_api_v2_proposals__proposal_id__contracts_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                proposal_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ContractRef"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    repos_api_v2_repos_get: {
-        parameters: {
-            query?: {
-                q?: string | null;
-                network?: ("mainnet" | "testnet") | null;
-                scope?: "soroban" | "stellar" | "all";
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RepoList"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    repo_api_v2_repos__owner___name__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                owner: string;
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RepoDetail"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    search_api_v2_search_get: {
-        parameters: {
-            query: {
-                q: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SearchResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    wrapped_api_v2_wrapped_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -2144,24 +393,13 @@ export interface operations {
                     "application/json": components["schemas"]["Wrapped"];
                 };
             };
-        };
-    };
-    report_report_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
+            /** @description Validation Error */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

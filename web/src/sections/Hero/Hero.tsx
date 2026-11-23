@@ -5,110 +5,61 @@ import { Figure } from '../../ui/Figure/Figure'
 import { Tile } from '../../ui/Tile/Tile'
 import './Hero.scss'
 
+const compact = (n: number) =>
+  n.toLocaleString('en', { notation: 'compact', maximumFractionDigits: 2 })
+
 export function Hero({ data }: { data: Wrapped }) {
-  const window =
-    data.first_day && data.last_day
-      ? `${moment.utc(data.first_day).format('MMM D')} to ${moment.utc(data.last_day).format('MMM D, YYYY')}`
-      : '2026'
+  const { totals } = data
+  const failed = (100 * totals.failed_transactions) / totals.transactions
   return (
     <section className="sw-hero" id="top">
       <Backdrop />
       <div className="sw-hero-inner">
-        <p className="sw-hero-eyebrow">What Soroban developers write by hand · {window}</p>
+        <p className="sw-hero-eyebrow">
+          {data.network} · {moment.utc(totals.first_day).format('MMM D')} to{' '}
+          {moment.utc(totals.last_day).format('MMM D, YYYY')} · {totals.days} days
+        </p>
         <h1 className="sw-hero-title">
           Soroban <em>Wrapped</em>
         </h1>
         <p className="sw-hero-lede">
-          We read every public Soroban repo and the chain itself, to find the code everyone
-          rewrites, the tooling nobody has built yet, and how the contracts really talk to each
-          other.
+          Every ledger of {moment.utc(totals.last_day).format('YYYY')}, read from the public
+          archive. Here is what the network really did.
         </p>
         <div className="sw-hero-grid">
-          <Tile
-            title="The field"
-            note={`${data.stellar_repos.toLocaleString('en')} more Stellar repos read`}
-          >
+          <Tile title="Contract calls" note="calls to Soroban contracts">
             <div className="sw-hero-big">
-              <Figure value={data.soroban_repos} className="sw-hero-figure" />
-              <p>
-                Soroban repos
-                <br />
-                in the window
-              </p>
-            </div>
-            <dl className="sw-hero-stats">
-              <div>
-                <dt>on mainnet</dt>
-                <dd>
-                  <Figure value={data.mainnet_repos} />
-                </dd>
-              </div>
-              <div>
-                <dt>on testnet</dt>
-                <dd>
-                  <Figure value={data.testnet_repos} />
-                </dd>
-              </div>
-              <div>
-                <dt>commits read</dt>
-                <dd>
-                  <Figure
-                    value={data.commits}
-                    format={(n) =>
-                      Intl.NumberFormat('en', {
-                        notation: 'compact',
-                        maximumFractionDigits: 1,
-                      }).format(n)
-                    }
-                  />
-                </dd>
-              </div>
-            </dl>
-          </Tile>
-          <Tile title="On chain" note="contracts found in those repos">
-            <div className="sw-hero-pair">
-              <div>
-                <span className="sw-hero-dot sw-hero-mainnet" />
-                <Figure value={data.mainnet_contracts} className="sw-hero-figure sw-hero-medium" />
-                <p>mainnet</p>
-              </div>
-              <div>
-                <span className="sw-hero-dot sw-hero-testnet" />
-                <Figure value={data.testnet_contracts} className="sw-hero-figure sw-hero-medium" />
-                <p>testnet</p>
-              </div>
+              <Figure value={totals.contract_calls} format={compact} className="sw-hero-figure" />
             </div>
             <p className="sw-hero-foot">
-              <b>{data.live_contracts.toLocaleString('en')}</b> are live right now.
+              across <b>{totals.contracts_called.toLocaleString('en')}</b> different contracts.
             </p>
           </Tile>
-          <Tile title="Hand written" note="parsed and matched">
+          <Tile title="Transactions" note={`${totals.ledgers.toLocaleString('en')} ledgers`}>
             <div className="sw-hero-big">
-              <Figure value={data.functions} className="sw-hero-figure sw-hero-medium" />
-              <p>functions parsed</p>
+              <Figure value={totals.transactions} format={compact} className="sw-hero-figure" />
             </div>
-            <dl className="sw-hero-stats">
-              <div>
-                <dt>patterns</dt>
-                <dd>
-                  <Figure value={data.patterns} />
-                </dd>
-              </div>
-              <div>
-                <dt>proposals</dt>
-                <dd>
-                  <Figure value={data.proposals} />
-                </dd>
-              </div>
-              <div>
-                <dt>tooling needs</dt>
-                <dd>
-                  <Figure value={data.needs} />
-                </dd>
-              </div>
-            </dl>
+            <p className="sw-hero-foot">
+              carrying <b>{compact(totals.operations)}</b> operations.
+            </p>
+          </Tile>
+          <Tile title="Failed" note="transactions that reverted">
+            <div className="sw-hero-big">
+              <Figure
+                value={failed}
+                format={(n) => `${n.toFixed(1)}%`}
+                className="sw-hero-figure"
+              />
+            </div>
+            <p className="sw-hero-foot">
+              <b>{compact(totals.failed_transactions)}</b> transactions did not go through.
+            </p>
           </Tile>
         </div>
+        <p className="sw-hero-updated">
+          {totals.has_partial_day ? 'Includes today so far. ' : ''}
+          Last synced {totals.synced_at ? moment.utc(totals.synced_at).fromNow() : 'never'}.
+        </p>
       </div>
     </section>
   )

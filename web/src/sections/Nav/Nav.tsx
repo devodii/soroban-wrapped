@@ -1,18 +1,29 @@
 import * as React from 'react'
-import { Command, Moon, Sun } from 'lucide-react'
+import { Moon, Sun } from 'lucide-react'
 import { setTheme, useTheme } from '../../lib/theme'
 import { Button } from '../../ui/Button/Button'
 import { cx } from '../../ui/cx'
+import { Segmented } from '../../ui/Segmented/Segmented'
 import './Nav.scss'
 
+export type NetworkName = 'mainnet' | 'testnet'
+
 export const SECTIONS = [
-  { id: 'hand-written', label: 'Hand written' },
-  { id: 'needs', label: 'Tooling gaps' },
-  { id: 'chain', label: 'On chain' },
-  { id: 'graph', label: 'The graph' },
+  { id: 'pulse', label: 'Pulse' },
+  { id: 'concentration', label: 'Concentration' },
+  { id: 'leaders', label: 'Leaders' },
+  { id: 'rhythm', label: 'Rhythm' },
+  { id: 'graph', label: 'Graph' },
+  { id: 'stack', label: 'Stack' },
 ]
 
-export function Nav({ onPalette }: { onPalette: () => void }) {
+export function Nav({
+  network,
+  onNetwork,
+}: {
+  network: NetworkName
+  onNetwork: (network: NetworkName) => void
+}) {
   const theme = useTheme()
   const [active, setActive] = React.useState('')
 
@@ -41,10 +52,15 @@ export function Nav({ onPalette }: { onPalette: () => void }) {
         ))}
       </nav>
       <div className="sw-nav-actions">
-        <Button size="sm" onClick={onPalette} aria-label="Open the command palette">
-          <Command size={14} />
-          <span className="sw-nav-key">K</span>
-        </Button>
+        <Segmented
+          label="Network"
+          value={network}
+          onChange={onNetwork}
+          options={[
+            { value: 'mainnet', label: 'Mainnet', accent: 'var(--net-mainnet)' },
+            { value: 'testnet', label: 'Testnet', accent: 'var(--net-testnet)' },
+          ]}
+        />
         <Button
           variant="ghost"
           size="icon"

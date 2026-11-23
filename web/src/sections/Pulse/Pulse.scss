@@ -1,0 +1,21 @@
+@use '../../styles/tokens' as t;
+
+.sw-pulse-grid {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+
+  @include t.media(lg) {
+    grid-template-columns: 1.7fr 1fr;
+  }
+}
+
+.sw-pulse-note {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--muted-foreground);
+
+  b {
+    color: var(--foreground);
+  }
+}

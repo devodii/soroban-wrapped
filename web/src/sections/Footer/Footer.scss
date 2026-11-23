@@ -1,17 +1,12 @@
 .sw-footer {
   max-width: var(--content-width);
-  margin: 0 auto;
-  padding: var(--space-7) var(--space-4);
-  display: grid;
-  gap: var(--space-3);
+  margin: var(--space-8) auto 0;
+  padding: var(--space-6) var(--space-4) var(--space-7);
+  border-top: 1px solid var(--tile-border);
   color: var(--muted-foreground);
-  border-top: 1px solid var(--border);
-
-  p {
-    max-width: 44rem;
-  }
 }
 
 .sw-footer-small {
+  margin-top: var(--space-2);
   font-size: var(--text-xs);
 }

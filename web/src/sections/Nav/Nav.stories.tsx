@@ -1,10 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { Nav } from './Nav'
 
-const meta: Meta<typeof Nav> = {
-  title: 'sections/Nav',
-  component: Nav,
-  args: { onPalette: () => {} },
-}
+const meta = { title: 'sections/Nav', component: Nav } satisfies Meta<typeof Nav>
 export default meta
-export const Default: StoryObj<typeof Nav> = {}
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = { args: { network: 'mainnet', onNetwork: () => undefined } }

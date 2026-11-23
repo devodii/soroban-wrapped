@@ -1,0 +1,46 @@
+@use '../../styles/tokens' as t;
+
+.sw-composability-stats,
+.sw-composability-hubs {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-5) 0;
+
+  @include t.media(md) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  p {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--muted-foreground);
+  }
+}
+
+.sw-composability-hubs {
+  @include t.media(md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  ul {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    font-size: var(--text-sm);
+  }
+}
+
+.sw-composability-big {
+  font-family: var(--font-heading);
+  font-size: var(--text-display);
+  line-height: 0.9;
+  color: var(--brand);
+}
