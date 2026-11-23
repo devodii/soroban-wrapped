@@ -1,255 +1,219 @@
 import asyncio
-import json
+import logging
 import time
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Literal
 
-import asyncpg
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel, Field
+from fastapi.responses import FileResponse
 
-from soroban_wrapped import api_app
+from soroban_wrapped.api_models import (
+    Clone,
+    Concentration,
+    Contract,
+    Day,
+    DayRecord,
+    FunctionStat,
+    Graph,
+    GraphEdge,
+    GraphNode,
+    GraphTotals,
+    Hub,
+    Month,
+    SdkVersion,
+    Totals,
+    WasmStats,
+    Weekday,
+    Wrapped,
+)
 from soroban_wrapped.config import ROOT
 from soroban_wrapped.database import open_pool
 from soroban_wrapped.sql_loader import load_sql
 
-UI_DIR = Path(__file__).with_name("ui")
+log = logging.getLogger("soroban_wrapped")
+
 WEB_DIST = ROOT / "web" / "dist"
-MIN_OVERLAP = 30
+TTL_SECONDS = 600
+TOP_CONTRACTS = 25
+TOP_HUBS = 10
+TOP_FUNCTIONS = 20
+TOP_SDKS = 10
+TOP_CLONES = 10
+GRAPH_NODES = 160
+GRAPH_EDGES = 700
+MIN_FAILURE_DAY_TRANSACTIONS = 1_000_000
+NETWORKS = ("mainnet", "testnet")
 
 
-class CommentIn(BaseModel):
-    target_kind: str = Field(
-        pattern="^(repo|proposal|pattern|contract|node|need|tool)$"
-    )
-    target_id: str = Field(min_length=1, max_length=300)
-    author: str = Field(default="anonymous", max_length=80)
-    body: str = Field(min_length=1, max_length=4000)
+def records(days: list[Day]) -> list[DayRecord]:
+    full = [d for d in days if not d.partial]
+    if not full:
+        return []
+    rate = [d for d in full if d.transactions >= MIN_FAILURE_DAY_TRANSACTIONS] or full
+    jumps = [
+        (b, b.contract_calls - a.contract_calls)
+        for a, b in zip(full, full[1:], strict=False)
+    ]
+    busiest = max(full, key=lambda d: d.contract_calls)
+    chatty = max(full, key=lambda d: d.transactions)
+    worst = max(rate, key=lambda d: d.failed_transactions / max(d.transactions, 1))
+    best = min(rate, key=lambda d: d.failed_transactions / max(d.transactions, 1))
+    quiet = min(full, key=lambda d: d.contract_calls)
+    jump_day, jump = max(jumps, key=lambda pair: pair[1]) if jumps else (busiest, 0)
+    return [
+        DayRecord(kind="most_calls", day=busiest.day, value=busiest.contract_calls),
+        DayRecord(kind="most_transactions", day=chatty.day, value=chatty.transactions),
+        DayRecord(
+            kind="highest_failure_rate",
+            day=worst.day,
+            value=100 * worst.failed_transactions / max(worst.transactions, 1),
+        ),
+        DayRecord(
+            kind="lowest_failure_rate",
+            day=best.day,
+            value=100 * best.failed_transactions / max(best.transactions, 1),
+        ),
+        DayRecord(kind="biggest_jump", day=jump_day.day, value=jump),
+        DayRecord(kind="quietest", day=quiet.day, value=quiet.contract_calls),
+    ]
 
 
-def records(rows: list[asyncpg.Record]) -> list[dict[str, Any]]:
-    return [dict(row) for row in rows]
-
-
-def recall(found: dict[str, Any]) -> dict[str, Any]:
-    text, content, both = found["by_text"], found["by_content"], found["by_both"]
-    reliable = both >= MIN_OVERLAP
-    estimate = ((text + 1) * (content + 1) / (both + 1) - 1) if reliable else None
-    return {
-        **found,
-        "estimated_total": round(estimate) if estimate else None,
-        "estimated_missing": round(estimate - found["confirmed"]) if estimate else None,
-        "note": "Lincoln-Petersen estimate from text search vs content search overlap"
-        if reliable
-        else f"not enough overlap yet ({both} of the {MIN_OVERLAP} needed), content search is still running",
-    }
-
-
-OVERVIEW_QUERIES = [
-    "counts",
-    "stages",
-    "patterns",
-    "proposals",
-    "candidates",
-    "queries",
-    "networks",
-    "needs",
-    "top_contracts",
-    "top_edges",
-    "network_days",
-]
-REFRESH_SECONDS = 900
-
-
-async def one(pool: asyncpg.Pool, name: str, *args: Any) -> Any:
-    async def fetch() -> list[dict[str, Any]]:
+async def build(pool, network: str) -> Wrapped:
+    async def many(name: str, *args):
         async with pool.acquire() as connection:
-            return records(await connection.fetch(load_sql(f"overview_{name}"), *args))
+            return [dict(r) for r in await connection.fetch(load_sql(name), *args)]
 
-    if name in HEAVY and SNAPSHOTS is not None:
-        return await SNAPSHOTS.get(
-            f"part:{name}",
-            fetch,
-            HEAVY[name],
-            fallback=[{}] if name == "counts" else [],
-        )
-    return await fetch()
+    async def one(name: str, *args):
+        rows = await many(name, *args)
+        return rows[0]
 
-
-async def overview(pool: asyncpg.Pool, limit: int) -> dict[str, Any]:
-    names = OVERVIEW_QUERIES
-    results = await asyncio.gather(
-        *[one(pool, name) for name in names],
-        one(pool, "repos", limit),
-        one(pool, "recall"),
+    (
+        totals,
+        days,
+        months,
+        weekdays,
+        top,
+        concentration,
+        hubs,
+        graph_totals,
+        functions,
+        sdks,
+        wasm,
+        clones,
+        nodes,
+    ) = await asyncio.gather(
+        one("stats_totals", network),
+        many("stats_days", network),
+        many("stats_months", network),
+        many("stats_weekdays", network),
+        many("stats_top_contracts", network, TOP_CONTRACTS),
+        one("stats_concentration", network),
+        many("stats_hubs", network, TOP_HUBS),
+        one("stats_graph_totals", network),
+        many("stats_functions", network, TOP_FUNCTIONS),
+        many("stats_sdk_versions", network, TOP_SDKS),
+        one("stats_wasm", network),
+        many("stats_clones", network, TOP_CLONES),
+        many("stats_graph_nodes", network, GRAPH_NODES),
     )
-    data: dict[str, Any] = {
-        name: records(rows) if rows and not isinstance(rows[0], dict) else rows
-        for name, rows in zip(names, results, strict=False)
-    }
-    data["counts"] = data["counts"][0]
-    data["repos"] = records(results[-2])
-    data["recall"] = recall(dict(results[-1][0]))
-    return data
-
-
-CACHE_DIR = ROOT / "out" / "cache"
-HEAVY = {"top_edges": 14400, "top_contracts": 14400, "patterns": 7200, "counts": 1800}
+    ids = [n["contract_id"] for n in nodes]
+    edges = await many("stats_graph_edges", network, ids, GRAPH_EDGES)
+    day_models = [
+        Day(
+            **{k: v for k, v in d.items() if k != "status"},
+            partial=d["status"] != "done",
+        )
+        for d in days
+    ]
+    return Wrapped(
+        network=network,
+        generated_at=datetime.now(UTC),
+        totals=Totals(
+            **{k: v for k, v in totals.items() if k != "edge_days"},
+            call_pairs=graph_totals["pairs"],
+        ),
+        days=day_models,
+        months=[Month(**m) for m in months],
+        weekdays=[Weekday(**w) for w in weekdays],
+        records=records(day_models),
+        top_contracts=[Contract(**c) for c in top],
+        concentration=Concentration(**concentration),
+        hubs=[Hub(**h) for h in hubs],
+        graph_totals=GraphTotals(**graph_totals),
+        functions=[FunctionStat(**f) for f in functions],
+        sdk_versions=[SdkVersion(**s) for s in sdks],
+        wasm=WasmStats(**wasm),
+        clones=[Clone(**{**c, "functions": c["functions"] or []}) for c in clones],
+        graph=Graph(
+            nodes=[
+                GraphNode(**{**n, "functions": n["functions"] or []}) for n in nodes
+            ],
+            edges=[GraphEdge(**e) for e in edges],
+        ),
+    )
 
 
 class Snapshots:
-    def __init__(self, pool: asyncpg.Pool) -> None:
-        self.pool = pool
-        self.values: dict[str, tuple[float, Any]] = {}
-        self.busy: dict[str, asyncio.Task[Any]] = {}
-        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    def __init__(self) -> None:
+        self.pool = None
+        self.items: dict[str, tuple[float, Wrapped]] = {}
+        self.locks = {name: asyncio.Lock() for name in NETWORKS}
 
-    def file(self, key: str) -> Path:
-        return CACHE_DIR / (key.replace(":", "_").replace("/", "_") + ".json")
+    async def get(self, network: str) -> Wrapped:
+        async with self.locks[network]:
+            saved = self.items.get(network)
+            if saved and time.monotonic() - saved[0] < TTL_SECONDS:
+                return saved[1]
+            fresh = await build(self.pool, network)
+            self.items[network] = (time.monotonic(), fresh)
+            return fresh
 
-    async def refresh(self, key: str, make: Any) -> Any:
-        try:
-            value = json.loads(json.dumps(await make(), default=str))
-            self.values[key] = (time.monotonic(), value)
-            self.file(key).write_text(json.dumps(value))
-            return value
-        finally:
-            self.busy.pop(key, None)
-
-    def start(self, key: str, make: Any) -> asyncio.Task[Any]:
-        task = self.busy.get(key)
-        if task is None:
-            task = self.busy[key] = asyncio.create_task(self.refresh(key, make))
-        return task
-
-    async def get(
-        self, key: str, make: Any, ttl: int = REFRESH_SECONDS, fallback: Any = None
-    ) -> Any:
-        cached = self.values.get(key)
-        if cached is None:
-            saved = self.file(key)
-            if saved.exists():
-                value = json.loads(saved.read_text())
-                self.values[key] = (0.0, value)
-                self.start(key, make)
-                return value
-            task = self.start(key, make)
-            if fallback is not None:
-                return fallback
-            return await task
-        if time.monotonic() - cached[0] > ttl:
-            self.start(key, make)
-        return cached[1]
+    async def keep_fresh(self) -> None:
+        while True:
+            for network in NETWORKS:
+                try:
+                    await self.get(network)
+                except Exception:
+                    log.exception("could not refresh the %s snapshot", network)
+            await asyncio.sleep(TTL_SECONDS)
 
 
-SNAPSHOTS: Snapshots | None = None
+snapshots = Snapshots()
 
 
-async def graph(pool: asyncpg.Pool) -> dict[str, Any]:
-    async with pool.acquire() as a, pool.acquire() as b:
-        nodes, edges = await asyncio.gather(
-            a.fetch(load_sql("graph_nodes")), b.fetch(load_sql("graph_edges"))
-        )
-    return {"nodes": records(nodes), "edges": records(edges)}
-
-
-def create_app() -> FastAPI:
-    @asynccontextmanager
-    async def lifespan(app: FastAPI):
-        app.state.pool = await open_pool()
-        app.state.snapshots = Snapshots(app.state.pool)
-        global SNAPSHOTS
-        SNAPSHOTS = app.state.snapshots
-        app.state.v2 = api_app.Cache()
-        asyncio.create_task(api_app.warm(app))
-        asyncio.create_task(
-            app.state.snapshots.get(
-                "overview:500", lambda: overview(app.state.pool, 500)
-            )
-        )
-        asyncio.create_task(
-            app.state.snapshots.get("graph", lambda: graph(app.state.pool))
-        )
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    snapshots.pool = await open_pool(6)
+    task = asyncio.create_task(snapshots.keep_fresh())
+    try:
         yield
-        await app.state.pool.close()
-
-    app = FastAPI(title="soroban-wrapped", lifespan=lifespan)
-    app.add_middleware(GZipMiddleware, minimum_size=1024)
-    app.include_router(api_app.router)
-
-    @app.get("/app", include_in_schema=False)
-    @app.get("/app/{path:path}", include_in_schema=False)
-    async def web_app(path: str = "") -> FileResponse:
-        index = WEB_DIST / "index.html"
-        if not index.exists():
-            raise HTTPException(404, "web app is not built, run pnpm build in web")
-        target = (WEB_DIST / path).resolve()
-        if path and target.is_file() and WEB_DIST.resolve() in target.parents:
-            return FileResponse(target)
-        return FileResponse(index)
-
-    @app.get("/")
-    async def page() -> FileResponse:
-        return FileResponse(UI_DIR / "index.html")
-
-    @app.get("/api/overview")
-    async def get_overview(request: Request, limit: int = 500) -> JSONResponse:
-        size = min(limit, 5000)
-        pool = request.app.state.pool
-        data = await request.app.state.snapshots.get(
-            f"overview:{size}", lambda: overview(pool, size)
-        )
-        return JSONResponse(data)
-
-    @app.get("/report")
-    async def report() -> FileResponse:
-        path = ROOT / "out" / "report.md"
-        if not path.exists():
-            raise HTTPException(404, "no report yet")
-        return FileResponse(path, media_type="text/plain; charset=utf-8")
-
-    @app.get("/api/repo")
-    async def get_repo(request: Request, name: str) -> JSONResponse:
-        async with request.app.state.pool.acquire() as connection:
-            row = await connection.fetchrow(load_sql("overview_repo"), name)
-        if row is None:
-            raise HTTPException(404, "unknown repo")
-        return JSONResponse(json.loads(json.dumps(dict(row), default=str)))
-
-    @app.get("/api/graph")
-    async def get_graph(request: Request) -> JSONResponse:
-        pool = request.app.state.pool
-        data = await request.app.state.snapshots.get("graph", lambda: graph(pool))
-        return JSONResponse(data)
-
-    @app.get("/api/comments")
-    async def list_comments(
-        request: Request, target_kind: str, target_id: str
-    ) -> JSONResponse:
-        async with request.app.state.pool.acquire() as connection:
-            rows = await connection.fetch(
-                load_sql("comments_list"), target_kind, target_id
-            )
-        return JSONResponse(json.loads(json.dumps(records(rows), default=str)))
-
-    @app.post("/api/comments")
-    async def add_comment(request: Request, comment: CommentIn) -> JSONResponse:
-        async with request.app.state.pool.acquire() as connection:
-            row = await connection.fetchrow(
-                load_sql("comments_add"),
-                comment.target_kind,
-                comment.target_id,
-                comment.author,
-                comment.body,
-            )
-        if row is None:
-            raise HTTPException(500, "comment was not stored")
-        return JSONResponse(json.loads(json.dumps(dict(row), default=str)))
-
-    return app
+    finally:
+        task.cancel()
+        await snapshots.pool.close()
 
 
-app = create_app()
+app = FastAPI(title="Soroban Wrapped", version="1.0.0", lifespan=lifespan)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+
+@app.get("/api/wrapped/{network}", response_model=Wrapped, tags=["wrapped"])
+async def wrapped(network: Literal["mainnet", "testnet"]) -> Wrapped:
+    return await snapshots.get(network)
+
+
+def static(path: str) -> Path | None:
+    target = (WEB_DIST / path).resolve()
+    return target if target.is_file() and WEB_DIST in target.parents else None
+
+
+@app.get("/{path:path}", include_in_schema=False)
+async def web(path: str) -> FileResponse:
+    if path.startswith("api/"):
+        raise HTTPException(404)
+    found = static(path) or static("index.html")
+    if found is None:
+        raise HTTPException(404, "the web app is not built, run pnpm build in web")
+    return FileResponse(found)

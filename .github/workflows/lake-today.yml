@@ -1,0 +1,52 @@
+name: lake-today
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: lake-today
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      scans: ${{ steps.scans.outputs.scans }}
+    steps:
+      - id: scans
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from datetime import UTC, datetime, timedelta
+          today = datetime.now(UTC).date()
+          days = [today - timedelta(days=1), today]
+          scans = [{"network": n, "day": d.isoformat()} for n in ("mainnet", "testnet") for d in days]
+          print("scans=" + json.dumps(scans))
+          PY
+
+  scan:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        scan: ${{ fromJson(needs.plan.outputs.scans) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --no-dev
+      - name: Summarise the ledger archive for the day
+        run: |
+          uv run soroban-wrapped lake --network "${{ matrix.scan.network }}" \
+            --from "${{ matrix.scan.day }}" --to "${{ matrix.scan.day }}" \
+            --out out/lake --threads 64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lake-${{ matrix.scan.network }}-${{ matrix.scan.day }}
+          path: out/lake/*.parquet
+          retention-days: 3
