@@ -4,7 +4,6 @@ CREATE TABLE wasm_modules (
     size integer NOT NULL,
     sdk_version text,
     rust_version text,
-    source_repo text,
     meta jsonb DEFAULT '{}' NOT NULL,
     spec jsonb DEFAULT '{}' NOT NULL,
     function_names text[] DEFAULT '{}' NOT NULL,

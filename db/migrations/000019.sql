@@ -1,0 +1,85 @@
+DROP VIEW IF EXISTS repo_contract_links CASCADE;
+
+DROP TABLE IF EXISTS type_defs CASCADE;
+
+DROP TABLE IF EXISTS need_tools CASCADE;
+
+DROP TABLE IF EXISTS need_tool_verdicts CASCADE;
+
+DROP TABLE IF EXISTS need_tool_gaps CASCADE;
+
+DROP TABLE IF EXISTS need_evidence CASCADE;
+
+DROP TABLE IF EXISTS tooling_needs CASCADE;
+
+DROP TABLE IF EXISTS tool_snapshots CASCADE;
+
+DROP TABLE IF EXISTS tool_catalog CASCADE;
+
+DROP TABLE IF EXISTS stage_runs CASCADE;
+
+DROP TABLE IF EXISTS pattern_matches CASCADE;
+
+DROP TABLE IF EXISTS functions CASCADE;
+
+DROP TABLE IF EXISTS contract_calls CASCADE;
+
+DROP TABLE IF EXISTS source_files CASCADE;
+
+DROP TABLE IF EXISTS repo_network_signals CASCADE;
+
+DROP TABLE IF EXISTS repo_documents CASCADE;
+
+DROP TABLE IF EXISTS repo_contributors CASCADE;
+
+DROP TABLE IF EXISTS repo_contract_refs CASCADE;
+
+DROP TABLE IF EXISTS releases CASCADE;
+
+DROP TABLE IF EXISTS proposal_repos CASCADE;
+
+DROP TABLE IF EXISTS issues CASCADE;
+
+DROP TABLE IF EXISTS ecosystem_dependencies CASCADE;
+
+DROP TABLE IF EXISTS crate_dependencies CASCADE;
+
+DROP TABLE IF EXISTS crates CASCADE;
+
+DROP TABLE IF EXISTS commit_pattern_touches CASCADE;
+
+DROP TABLE IF EXISTS commit_files CASCADE;
+
+DROP TABLE IF EXISTS commits CASCADE;
+
+DROP TABLE IF EXISTS repos CASCADE;
+
+DROP TABLE IF EXISTS query_stats CASCADE;
+
+DROP TABLE IF EXISTS qa_posts CASCADE;
+
+DROP TABLE IF EXISTS proposal_patterns CASCADE;
+
+DROP TABLE IF EXISTS proposal_bug_classes CASCADE;
+
+DROP TABLE IF EXISTS proposals CASCADE;
+
+DROP TABLE IF EXISTS patterns CASCADE;
+
+DROP TABLE IF EXISTS graph_edges CASCADE;
+
+DROP TABLE IF EXISTS graph_nodes CASCADE;
+
+DROP TABLE IF EXISTS contract_creations CASCADE;
+
+DROP TABLE IF EXISTS comments CASCADE;
+
+DROP TABLE IF EXISTS catalog_candidates CASCADE;
+
+DROP TABLE IF EXISTS bug_classes CASCADE;
+
+ALTER TABLE chain_days DROP COLUMN creations;
+
+ALTER TABLE wasm_modules DROP COLUMN source_repo;
+
+DROP INDEX IF EXISTS wasm_modules_source_repo;

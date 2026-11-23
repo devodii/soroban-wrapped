@@ -5,7 +5,7 @@ from pathlib import Path
 import httpx
 
 from soroban_wrapped.chain.lake import scan_day
-from soroban_wrapped.workflow import load_workflow
+from soroban_wrapped.networks import load_networks
 
 log = logging.getLogger("soroban_wrapped")
 
@@ -22,7 +22,7 @@ async def run_lake(
     threads: int,
     limit_ledgers: int | None,
 ) -> None:
-    base = load_workflow().chain.network(network).lake
+    base = load_networks().get(network).lake
     async with httpx.AsyncClient() as http:
         for day in days(date.fromisoformat(first), date.fromisoformat(last)):
             marker = Path(out) / f"done-{day}"

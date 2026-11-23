@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import duckdb
@@ -12,7 +12,6 @@ from soroban_wrapped.sql_loader import load_sql
 log = logging.getLogger("soroban_wrapped")
 
 BATCH = 5000
-MIN_FULL_DAY = 10000
 
 
 def contract_id(value: str | None) -> str | None:
@@ -70,13 +69,9 @@ async def import_day(
         "SELECT ledgers, transactions, failed_transactions, operations, "
         "contract_calls, contracts_called FROM read_parquet('{file}')",
     )
-    if not totals or totals[0][0] < MIN_FULL_DAY:
-        log.warning(
-            "%s has only %s ledgers, a partial day, not imported",
-            day,
-            totals[0][0] if totals else 0,
-        )
+    if not totals:
         return None
+    status = "done" if day < datetime.now(UTC).date() else "partial"
     async with pool.acquire() as connection, connection.transaction():
         for offset in range(0, len(activity_rows), BATCH):
             await connection.executemany(
@@ -89,7 +84,7 @@ async def import_day(
         for row in totals:
             await connection.execute(load_sql("upsert_network_day"), network, day, *row)
             await connection.execute(
-                load_sql("upsert_chain_day"), network, day, row[0], row[4]
+                load_sql("upsert_chain_day"), network, day, status, row[0], row[4]
             )
     return len(activity_rows), len(edge_rows)
 

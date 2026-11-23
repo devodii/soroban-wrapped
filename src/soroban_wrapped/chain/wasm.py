@@ -9,7 +9,6 @@ class WasmInfo(BaseModel):
     size: int
     sdk_version: str | None = None
     rust_version: str | None = None
-    source_repo: str | None = None
     meta: dict[str, str] = Field(default_factory=dict)
     spec: dict[str, Any] = Field(default_factory=dict)
 
@@ -183,12 +182,10 @@ def read_wasm(wasm: bytes) -> WasmInfo:
             spec = decode_spec(sections["contractspecv0"])
         except Exception:
             spec = {}
-    source = meta.get("source_repo")
     return WasmInfo(
         size=len(wasm),
         sdk_version=meta.get("rssdkver", "").split("#")[0] or None,
         rust_version=meta.get("rsver"),
-        source_repo=source.removeprefix("github:") if source else None,
         meta=meta,
         spec=spec,
     )

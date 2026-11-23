@@ -1,7 +1,7 @@
 [project]
 name = "soroban-wrapped"
 version = "0.1.0"
-description = "Index every soroban contract repo and the chain to find what devs rewrite by hand"
+description = "Soroban Wrapped: the year of Soroban on-chain activity from the public ledger archive"
 requires-python = ">=3.13"
 dependencies = [
     "asyncpg>=0.32.0",
@@ -12,9 +12,6 @@ dependencies = [
     "pydantic-settings>=2.16.1",
     "pyyaml>=6.0.3",
     "stellar-sdk>=17.0.1",
-    "tree-sitter>=0.25.0",
-    "tree-sitter-rust>=0.24.0",
-    "tree-sitter-toml>=0.7.0",
 ]
 
 [project.scripts]
